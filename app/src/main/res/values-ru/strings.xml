@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Телефон</string>
+    <string name="app_launcher_name">Телефон</string>
+
+    <!-- Navigation -->
+    <string name="favorites">Избранное</string>
+    <string name="recents">Недавние</string>
+    <string name="contacts">Контакты</string>
+    <string name="dialpad">Набор</string>
+    <string name="settings">Настройки</string>
+
+    <!-- Call -->
+    <string name="incoming_call">Входящий вызов</string>
+    <string name="outgoing_call">Исходящий вызов</string>
+    <string name="ongoing_call">Текущий вызов</string>
+    <string name="call_ended">Вызов завершён</string>
+    <string name="call_on_hold">На удержании</string>
+    <string name="end_call">Завершить</string>
+    <string name="answer">Ответить</string>
+    <string name="decline">Отклонить</string>
+    <string name="mute">Без звука</string>
+    <string name="unmute">Включить звук</string>
+    <string name="speaker">Динамик</string>
+    <string name="hold">Удержать</string>
+    <string name="unhold">Продолжить</string>
+    <string name="add_call">Добавить вызов</string>
+    <string name="swap">Переключить</string>
+    <string name="merge">Объединить</string>
+    <string name="calling">Вызов…</string>
+    <string name="dialing">Набор…</string>
+    <string name="ringing">Звонок…</string>
+    <string name="unknown_caller">Неизвестный</string>
+    <string name="private_number">Скрытый номер</string>
+    <string name="conference_call">Конференц-вызов</string>
+
+    <!-- Dialpad -->
+    <string name="call">Позвонить</string>
+    <string name="enter_number">Введите номер</string>
+    <string name="hide">Скрыть</string>
+
+    <!-- Contacts -->
+    <string name="no_contacts">Контакты не найдены</string>
+    <string name="no_recents">Нет недавних вызовов</string>
+    <string name="no_favorites">Нет избранных</string>
+    <string name="search">Поиск</string>
+
+    <!-- Permissions -->
+    <string name="set_default_dialer_failed">Не удалось установить звонилку по умолчанию</string>
+    <string name="enable_accessibility_service">Включите службу специальных возможностей для поддержки физической клавиатуры</string>
+    <string name="accessibility_service_description">Необходима для поддержки физической QWERTY-клавиатуры. Перехватывает нажатия клавиш для ввода номера с аппаратных кнопок.</string>
+
+    <!-- Call log -->
+    <string name="all">Все</string>
+    <string name="incoming">Входящие</string>
+    <string name="outgoing">Исходящие</string>
+    <string name="missed">Пропущенные</string>
+    <string name="rejected">Отклонённые</string>
+    <string name="blocked">Заблокированные</string>
+    <string name="today">Сегодня</string>
+    <string name="yesterday">Вчера</string>
+    <string name="show_call_details">Детали звонка</string>
+    <string name="details">Детали</string>
+
+    <!-- Selection actions -->
+    <string name="selected_count">Выбрано: %d</string>
+    <string name="select_all">Выбрать все</string>
+    <string name="send_sms">СМС</string>
+    <string name="copy_number">Копировать номер</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_confirmation">Вы уверены что хотите удалить?</string>
+    <string name="block_number">Заблокировать номер</string>
+    <string name="unblock_number">Разблокировать номер</string>
+    <string name="confirm_block_number">Вы уверены, что хотите заблокировать %s?</string>
+    <string name="confirm_unblock_number">Вы уверены, что хотите разблокировать %s?</string>
+    <string name="add_to_contacts">Добавить в контакты</string>
+    <string name="number_copied">Номер скопирован</string>
+
+    <!-- Contact detail -->
+    <string name="contact_detail">Контакт</string>
+    <string name="call_history">История звонков</string>
+    <string name="no_call_history">Нет истории звонков</string>
+    <string name="mobile">Мобильный</string>
+    <string name="home">Домашний</string>
+    <string name="work">Рабочий</string>
+    <string name="other">Другой</string>
+    <string name="phone_numbers">Номера телефонов</string>
+    <string name="edit_contact">Редактировать контакт</string>
+    <string name="all_contacts">Контакты</string>
+
+    <!-- Notification -->
+    <string name="call_notification_channel">Активные вызовы</string>
+    <string name="incoming_call_notification">Входящий вызов от %s</string>
+    <string name="ongoing_call_notification">Вызов с %s</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">Добро пожаловать</string>
+    <string name="onboarding_default_dialer">Установить как приложение для звонков</string>
+    <string name="onboarding_default_dialer_desc">Необходимо для совершения звонков</string>
+    <string name="onboarding_accessibility">Включить поддержку клавиатуры</string>
+    <string name="onboarding_accessibility_desc">Необходимо для физической QWERTY-клавиатуры</string>
+    <string name="onboarding_done">Готово</string>
+    <string name="onboarding_next">Далее</string>
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_setup">Настроить</string>
+    <string name="onboarding_change">Изменить</string>
+
+    <!-- Settings -->
+    <string name="settings_dialpad_section">Набор номера</string>
+    <string name="settings_hide_virtual_dialpad">Скрыть виртуальную клавиатуру</string>
+    <string name="settings_hide_virtual_dialpad_desc">Использовать физическую QWERTY-клавиатуру для набора номера</string>
+    <string name="settings_accessibility_service">Служба специальных возможностей</string>
+    <string name="settings_accessibility_enabled">Включена</string>
+    <string name="settings_accessibility_disabled">Отключена – нажмите для включения</string>
+    <string name="settings_interface_section">Интерфейс</string>
+    <string name="settings_expanded_bottom_nav">Расширенная панель навигации</string>
+    <string name="settings_expanded_bottom_nav_desc">Показывать подписи под иконками навигации</string>
+    <string name="settings_theme">Тема</string>
+    <string name="theme_system">Системная</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="settings_call_history_section">История звонков</string>
+    <string name="settings_call_history_limit">Записей на контакт</string>
+    <string name="settings_call_history_limit_desc">Показывать последние %d звонков в деталях контакта</string>
+    <string name="settings_language_section">Язык</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_privacy_section">Конфиденциальность</string>
+    <string name="settings_send_anonymous_stats">Отправка анонимной статистики</string>
+    <string name="settings_send_anonymous_stats_desc">Помогите улучшить приложение, отправляя отчёты об ошибках и данные о производительности</string>
+    <string name="settings_keyboard_section">Клавиатура</string>
+    <string name="settings_disable_vertical_arrows">Отключить вертикальные стрелки</string>
+    <string name="settings_disable_vertical_arrows_desc">Отключить KEY_UP и KEY_DOWN для навигации по списку</string>
+    <string name="settings_disable_horizontal_arrows">Отключить горизонтальные стрелки</string>
+    <string name="settings_disable_horizontal_arrows_desc">Отключить KEY_LEFT и KEY_RIGHT</string>
+    <string name="settings_about_section">О приложении</string>
+    <string name="settings_version">Версия %s</string>
+    <string name="settings_update_available">Доступно обновление: %s</string>
+    <string name="settings_up_to_date">Актуальная версия</string>
+    <string name="settings_open_github">Открыть GitHub</string>
+    <string name="settings_checking_updates">Проверка обновлений…</string>
+
+    <!-- Confirmation dialogs -->
+    <string name="delete_confirmation_title">Удаление</string>
+    <string name="delete_calls_confirmation">Удалить выбранные записи звонков?</string>
+    <string name="delete_contacts_confirmation">Удалить выбранные контакты?</string>
+
+    <!-- Debug -->
+    <string name="settings_debug_section">Отладка</string>
+    <string name="settings_debug_test_sentry">Отправить тестовое событие</string>
+    <string name="settings_debug_test_sentry_desc">Отправить тестовое сообщение в Sentry</string>
+    <string name="settings_debug_sentry_sent">Тестовое событие отправлено в Sentry</string>
+    <string name="settings_debug_test_crash">Тестовый краш</string>
+    <string name="settings_debug_test_crash_desc">Вызвать тестовый краш для проверки отчётов Sentry</string>
+
+    <!-- Languages -->
+    <string name="language_system">Системный</string>
+    <string name="language_en">English</string>
+    <string name="language_ru">Русский</string>
+</resources>

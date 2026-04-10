@@ -1,0 +1,104 @@
+[versions]
+# Kotlin
+kotlin = "2.3.20"
+# KSP
+ksp = "2.3.3"
+# AGP
+agp = "9.1.0"
+# Compose
+composeBom = "2026.03.00"
+composeActivity = "1.12.3"
+# Navigation
+navigationCompose = "2.9.0"
+# Lifecycle
+lifecycle = "2.10.0"
+# Room
+room = "2.8.4"
+# AndroidX
+coreKtx = "1.17.0"
+appcompat = "1.7.1"
+# Material
+material3 = "1.4.0"
+# Coil
+coil = "3.1.0"
+# Libphonenumber
+libphonenumber = "9.0.27"
+# Sentry
+sentry = "8.12.0"
+# Kotlinx
+kotlinxSerializationJson = "1.8.1"
+kotlinxCoroutines = "1.10.2"
+kotlinxCollectionsImmutable = "0.3.8"
+# Build
+app-build-compileSDKVersion = "36"
+app-build-targetSDK = "36"
+app-build-minimumSDK = "26"
+app-build-javaVersion = "VERSION_17"
+app-build-kotlinJVMTarget = "17"
+
+[libraries]
+# Compose BOM
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material-icons = { module = "androidx.compose.material:material-icons-extended" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-animation = { module = "androidx.compose.animation:animation" }
+compose-runtime = { module = "androidx.compose.runtime:runtime" }
+compose-activity = { module = "androidx.activity:activity-compose", version.ref = "composeActivity" }
+# Navigation
+navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+# Lifecycle
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
+# Room
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+# AndroidX
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+# Coil
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+# Libphonenumber
+libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
+# Sentry
+sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentry" }
+# Kotlinx
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
+
+[bundles]
+compose = [
+    "compose-ui",
+    "compose-ui-graphics",
+    "compose-ui-tooling-preview",
+    "compose-material3",
+    "compose-material-icons",
+    "compose-foundation",
+    "compose-animation",
+    "compose-runtime",
+    "compose-activity",
+]
+lifecycle = [
+    "lifecycle-runtime-compose",
+    "lifecycle-viewmodel-compose",
+    "lifecycle-runtime-ktx",
+    "lifecycle-process",
+]
+room = [
+    "room-runtime",
+    "room-ktx",
+]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+# Release builds
+**/release/
+
+# Local configuration file
+local.properties
+
+# Room schemas
+app/schemas/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Keystore files
+*.jks
+*.keystore
+
+# NDK / CMake
+.externalNativeBuild/
+.cxx/
+
+# Captures from Android Studio
+captures/
+
+# Misc
+*.log
+*.apk
+*.aab
+output-metadata.json
