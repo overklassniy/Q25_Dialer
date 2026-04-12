@@ -15,7 +15,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -95,6 +96,7 @@ import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
@@ -116,15 +118,13 @@ import com.overklassniy.q25.dialer.ui.screens.ContactDetailScreen
 import com.overklassniy.q25.dialer.ui.screens.ContactsScreen
 import com.overklassniy.q25.dialer.ui.screens.OnboardingScreen
 import com.overklassniy.q25.dialer.ui.screens.RecentsScreen
+import com.overklassniy.q25.dialer.ui.screens.ColorSettingsScreen
 import com.overklassniy.q25.dialer.ui.screens.SettingsScreen
 import com.overklassniy.q25.dialer.ui.theme.ActivatedItemForeground
 import com.overklassniy.q25.dialer.ui.theme.CallGreen
 import com.overklassniy.q25.dialer.ui.theme.Q25DialerTheme
 import com.overklassniy.q25.dialer.util.LocaleHelper
 import com.overklassniy.q25.dialer.util.PermissionHelper
-
-private val fastFadeIn = fadeIn(animationSpec = tween(150))
-private val fastFadeOut = fadeOut(animationSpec = tween(150))
 
 // Maps a native Android keyCode to its dialpad character (QWERTY mapping)
 private fun keyCodeToDialpad(keyCode: Int): Char? {
@@ -242,13 +242,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var themeMode by remember { mutableStateOf(prefs.themeMode) }
+            var colorRefreshKey by remember { mutableIntStateOf(0) }
             val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
             val isDarkTheme = when (themeMode) {
                 PreferencesManager.THEME_DARK -> true
                 PreferencesManager.THEME_LIGHT -> false
                 else -> systemDark
             }
-            Q25DialerTheme(darkTheme = isDarkTheme) {
+            Q25DialerTheme(darkTheme = isDarkTheme, colorRefreshKey = colorRefreshKey) {
                 val localPrefs = remember { PreferencesManager(this@MainActivity) }
                 var showOnboarding by remember { mutableStateOf(!localPrefs.onboardingCompleted) }
 
@@ -263,6 +264,7 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         activity = this@MainActivity,
                         onThemeModeChanged = { mode -> themeMode = mode },
+                        onColorsChanged = { colorRefreshKey++ },
                     )
                 }
             }
@@ -300,6 +302,16 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Handle BACK key before Compose (focus system consumes BACK to clear focus)
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                backKeyConsumed = onBackPressed?.invoke() ?: false
+                if (backKeyConsumed) return true
+            } else if (event.action == KeyEvent.ACTION_UP && backKeyConsumed) {
+                backKeyConsumed = false
+                return true
+            }
+        }
         if (event.action == KeyEvent.ACTION_DOWN) {
             val keyCode = event.keyCode
             // Recents: map QWERTY keycodes directly to dialpad chars (bypasses IME)
@@ -317,8 +329,16 @@ class MainActivity : ComponentActivity() {
                     return true
                 }
             }
-            // Both screens: navigate lists with DPAD UP/DOWN, activate with ENTER
-            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS) {
+            // Consume vertical arrows when disabled (all screens with list navigation)
+            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS || currentScreen == NavRoutes.SETTINGS || currentScreen == NavRoutes.COLOR_SETTINGS) {
+                if (prefs.disableVerticalArrows) {
+                    if (keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                        return true
+                    }
+                }
+            }
+            // Recents, Contacts, Settings & Color Settings: navigate lists with DPAD UP/DOWN, activate with ENTER
+            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS || currentScreen == NavRoutes.SETTINGS || currentScreen == NavRoutes.COLOR_SETTINGS) {
                 if (!prefs.disableVerticalArrows) {
                     if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                         onScrollUp?.invoke()
@@ -359,6 +379,8 @@ class MainActivity : ComponentActivity() {
         var onScrollUp: (() -> Unit)? = null
         var onScrollDown: (() -> Unit)? = null
         var onEnterPressed: (() -> Unit)? = null
+        var onBackPressed: (() -> Boolean)? = null
+        private var backKeyConsumed = false
     }
 }
 
@@ -374,6 +396,7 @@ object NavRoutes {
     const val CONTACTS = "contacts"
     const val SETTINGS = "settings"
     const val CONTACT_DETAIL = "contact_detail/{contactId}/{phoneNumber}"
+    const val COLOR_SETTINGS = "color_settings"
     const val ONBOARDING = "onboarding"
 
     fun contactDetail(contactId: Long = -1, phoneNumber: String = "") =
@@ -381,13 +404,18 @@ object NavRoutes {
 }
 
 @Composable
-fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> Unit = {}) {
+fun MainScreen(
+    activity: MainActivity? = null,
+    onThemeModeChanged: (String) -> Unit = {},
+    onColorsChanged: () -> Unit = {},
+) {
     val navController = rememberNavController()
     // Separate search queries per screen
     var recentsQuery by rememberSaveable { mutableStateOf("") }
     var contactsQuery by rememberSaveable { mutableStateOf("") }
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val prefs = remember { PreferencesManager(context) }
     val hideVirtualDialpad = remember { mutableStateOf(prefs.hideVirtualDialpad) }
     val expandedBottomNav = remember { mutableStateOf(prefs.expandedBottomNav) }
@@ -406,6 +434,10 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
     // Selection state for Contacts
     var selectedContactIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
 
+    // All selectable keys/ids (reported by screens for select-all)
+    var allCallKeys by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var allContactIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+
     // Refresh triggers: increment to force data reload after deletion
     var recentsRefreshTrigger by remember { mutableIntStateOf(0) }
     var contactsRefreshTrigger by remember { mutableIntStateOf(0) }
@@ -423,6 +455,16 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
     // Activation callbacks (invoke the click action on highlighted item)
     var onActivateRecentsItem: ((Int) -> Unit)? by remember { mutableStateOf(null) }
     var onActivateContactsItem: ((Int) -> Unit)? by remember { mutableStateOf(null) }
+
+    // Settings keyboard navigation state
+    var highlightedSettingsIndex by remember { mutableIntStateOf(-1) }
+    var settingsItemCount by remember { mutableIntStateOf(0) }
+    var settingsActivateTrigger by remember { mutableIntStateOf(0) }
+
+    // Color settings keyboard navigation state
+    var highlightedColorSettingsIndex by remember { mutableIntStateOf(-1) }
+    var colorSettingsItemCount by remember { mutableIntStateOf(0) }
+    var colorSettingsActivateTrigger by remember { mutableIntStateOf(0) }
 
     // GitHub update check
     var hasUpdate by remember { mutableStateOf(false) }
@@ -466,10 +508,12 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
     // Derive selected tab from current route
     val selectedTab = bottomNavItems.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
 
+    // Update currentScreen immediately for dispatchKeyEvent (synchronous, not LaunchedEffect)
+    MainActivity.currentScreen = currentRoute
+
     // Clear selection when switching tabs; hide dialpad when leaving Recents
-    // Update currentScreen for accessibility service bridge
+    // Re-read settings when route changes
     LaunchedEffect(currentRoute) {
-        MainActivity.currentScreen = currentRoute
         // Re-read settings so changes apply without restart
         hideVirtualDialpad.value = prefs.hideVirtualDialpad
         expandedBottomNav.value = prefs.expandedBottomNav
@@ -480,10 +524,14 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
         }
     }
 
-    // Reset highlighted index when switching tabs
+    // Reset highlighted index when switching screens
     LaunchedEffect(currentRoute) {
         highlightedRecentsIndex = -1
         highlightedContactsIndex = -1
+        highlightedSettingsIndex = -1
+        settingsActivateTrigger = 0
+        highlightedColorSettingsIndex = -1
+        colorSettingsActivateTrigger = 0
     }
 
     // Callbacks: receive key events from dispatchKeyEvent / accessibility service
@@ -493,38 +541,99 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
             if (recentsQuery.isNotEmpty()) recentsQuery = recentsQuery.dropLast(1)
         }
         MainActivity.onScrollUp = {
-            if (MainActivity.currentScreen == NavRoutes.CONTACTS) {
-                if (highlightedContactsIndex > 0) highlightedContactsIndex--
-                else if (highlightedContactsIndex < 0 && contactsItemCount > 0) highlightedContactsIndex = 0
-            } else {
-                if (highlightedRecentsIndex > 0) highlightedRecentsIndex--
-                else if (highlightedRecentsIndex < 0 && recentsItemCount > 0) highlightedRecentsIndex = 0
+            when (MainActivity.currentScreen) {
+                NavRoutes.CONTACTS -> {
+                    if (highlightedContactsIndex > 0) highlightedContactsIndex--
+                    else if (highlightedContactsIndex < 0 && contactsItemCount > 0) highlightedContactsIndex = 0
+                }
+                NavRoutes.SETTINGS -> {
+                    if (highlightedSettingsIndex > 0) highlightedSettingsIndex--
+                    else if (highlightedSettingsIndex < 0 && settingsItemCount > 0) highlightedSettingsIndex = 0
+                }
+                NavRoutes.COLOR_SETTINGS -> {
+                    if (highlightedColorSettingsIndex > 0) highlightedColorSettingsIndex--
+                    else if (highlightedColorSettingsIndex < 0 && colorSettingsItemCount > 0) highlightedColorSettingsIndex = 0
+                }
+                else -> {
+                    if (highlightedRecentsIndex > 0) highlightedRecentsIndex--
+                    else if (highlightedRecentsIndex < 0 && recentsItemCount > 0) highlightedRecentsIndex = 0
+                }
             }
         }
         MainActivity.onScrollDown = {
-            if (MainActivity.currentScreen == NavRoutes.CONTACTS) {
-                if (highlightedContactsIndex < contactsItemCount - 1) highlightedContactsIndex++
-                else if (highlightedContactsIndex < 0 && contactsItemCount > 0) highlightedContactsIndex = 0
-            } else {
-                if (highlightedRecentsIndex < recentsItemCount - 1) highlightedRecentsIndex++
-                else if (highlightedRecentsIndex < 0 && recentsItemCount > 0) highlightedRecentsIndex = 0
+            when (MainActivity.currentScreen) {
+                NavRoutes.CONTACTS -> {
+                    if (highlightedContactsIndex < contactsItemCount - 1) highlightedContactsIndex++
+                    else if (highlightedContactsIndex < 0 && contactsItemCount > 0) highlightedContactsIndex = 0
+                }
+                NavRoutes.SETTINGS -> {
+                    if (highlightedSettingsIndex < settingsItemCount - 1) highlightedSettingsIndex++
+                    else if (highlightedSettingsIndex < 0 && settingsItemCount > 0) highlightedSettingsIndex = 0
+                }
+                NavRoutes.COLOR_SETTINGS -> {
+                    if (highlightedColorSettingsIndex < colorSettingsItemCount - 1) highlightedColorSettingsIndex++
+                    else if (highlightedColorSettingsIndex < 0 && colorSettingsItemCount > 0) highlightedColorSettingsIndex = 0
+                }
+                else -> {
+                    if (highlightedRecentsIndex < recentsItemCount - 1) highlightedRecentsIndex++
+                    else if (highlightedRecentsIndex < 0 && recentsItemCount > 0) highlightedRecentsIndex = 0
+                }
             }
         }
         MainActivity.onEnterPressed = {
-            if (MainActivity.currentScreen == NavRoutes.RECENTS) {
-                if (highlightedRecentsIndex >= 0) {
-                    onActivateRecentsItem?.invoke(highlightedRecentsIndex)
-                } else if (recentsQuery.isNotEmpty()) {
-                    // No item highlighted but number is typed – place call
-                    try {
-                        val encoded = android.net.Uri.encode(recentsQuery, "+*")
-                        activity?.startActivity(android.content.Intent(android.content.Intent.ACTION_CALL, android.net.Uri.parse("tel:$encoded")))
-                    } catch (_: Exception) { }
+            when (MainActivity.currentScreen) {
+                NavRoutes.RECENTS -> {
+                    if (highlightedRecentsIndex >= 0) {
+                        onActivateRecentsItem?.invoke(highlightedRecentsIndex)
+                    } else if (recentsQuery.isNotEmpty()) {
+                        // No item highlighted but number is typed – place call
+                        try {
+                            val encoded = android.net.Uri.encode(recentsQuery, "+*")
+                            activity?.startActivity(android.content.Intent(android.content.Intent.ACTION_CALL, android.net.Uri.parse("tel:$encoded")))
+                        } catch (_: Exception) { }
+                    }
                 }
-            } else if (MainActivity.currentScreen == NavRoutes.CONTACTS) {
-                if (highlightedContactsIndex >= 0) {
-                    onActivateContactsItem?.invoke(highlightedContactsIndex)
+                NavRoutes.CONTACTS -> {
+                    if (highlightedContactsIndex >= 0) {
+                        onActivateContactsItem?.invoke(highlightedContactsIndex)
+                    }
                 }
+                NavRoutes.SETTINGS -> {
+                    if (highlightedSettingsIndex >= 0) settingsActivateTrigger++
+                }
+                NavRoutes.COLOR_SETTINGS -> {
+                    if (highlightedColorSettingsIndex >= 0) colorSettingsActivateTrigger++
+                }
+            }
+        }
+        MainActivity.onBackPressed = {
+            when {
+                showVirtualDialpad && MainActivity.currentScreen == NavRoutes.RECENTS -> {
+                    showVirtualDialpad = false
+                    isSearchActive = false
+                    recentsQuery = ""
+                    true
+                }
+                MainActivity.currentScreen == NavRoutes.CONTACTS -> {
+                    contactsQuery = ""
+                    navController.navigate(NavRoutes.RECENTS) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    true
+                }
+                MainActivity.currentScreen == NavRoutes.SETTINGS -> {
+                    navController.popBackStack()
+                    onColorsChanged()
+                    true
+                }
+                MainActivity.currentScreen == NavRoutes.COLOR_SETTINGS ||
+                MainActivity.currentScreen == NavRoutes.CONTACT_DETAIL -> {
+                    navController.popBackStack()
+                    true
+                }
+                else -> false
             }
         }
         onDispose {
@@ -533,6 +642,7 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
             MainActivity.onScrollUp = null
             MainActivity.onScrollDown = null
             MainActivity.onEnterPressed = null
+            MainActivity.onBackPressed = null
             MainActivity.currentScreen = ""
         }
     }
@@ -604,7 +714,7 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
                 } else false
             },
         topBar = {
-            if (!isOnDetailScreen && !isOnSettingsScreen) {
+            if (!isOnDetailScreen && !isOnSettingsScreen && currentRoute != NavRoutes.COLOR_SETTINGS) {
                 Column(modifier = Modifier.statusBarsPadding()) {
                     if (isAnySelectionMode) {
                         // Selection action bar replaces search bar
@@ -626,7 +736,13 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
                                 selectedCallKeys = emptySet()
                                 selectedContactIds = emptySet()
                             },
-                            onSelectAll = { },
+                            onSelectAll = {
+                                if (isCallSelectionMode) {
+                                    selectedCallKeys = if (selectedCallKeys == allCallKeys) emptySet() else allCallKeys
+                                } else if (isContactSelectionMode) {
+                                    selectedContactIds = if (selectedContactIds == allContactIds) emptySet() else allContactIds
+                                }
+                            },
                             onSms = if (isCallSelectionMode && selectedCallKeys.size == 1) {
                                 {
                                     val number = selectedCallKeys.first().substringBefore("_")
@@ -695,7 +811,11 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
                                 else -> Icons.Filled.Search
                             },
                             onSettingsClick = {
-                                navController.navigate(NavRoutes.SETTINGS)
+                                // Clear focus from search field to prevent double-back issue
+                                focusManager.clearFocus()
+                                navController.navigate(NavRoutes.SETTINGS) {
+                                    launchSingleTop = true
+                                }
                             },
                             showUpdateBadge = hasUpdate,
                         )
@@ -761,6 +881,8 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
                 onCallSelectionChanged = { selectedCallKeys = it },
                 selectedContactIds = selectedContactIds,
                 onContactSelectionChanged = { selectedContactIds = it },
+                onAllCallKeys = { allCallKeys = it },
+                onAllContactIds = { allContactIds = it },
                 recentsRefreshTrigger = recentsRefreshTrigger,
                 contactsRefreshTrigger = contactsRefreshTrigger,
                 recentsListState = recentsListState,
@@ -771,16 +893,19 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
                 onContactsItemCount = { contactsItemCount = it },
                 onActivateRecentsItem = { onActivateRecentsItem = it },
                 onActivateContactsItem = { onActivateContactsItem = it },
+                highlightedSettingsIndex = highlightedSettingsIndex,
+                settingsActivateTrigger = settingsActivateTrigger,
+                onSettingsItemCount = { settingsItemCount = it },
+                highlightedColorSettingsIndex = highlightedColorSettingsIndex,
+                colorSettingsActivateTrigger = colorSettingsActivateTrigger,
+                onColorSettingsItemCount = { colorSettingsItemCount = it },
                 onNavigateBack = {
-                    navController.navigate(NavRoutes.RECENTS) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navController.popBackStack()
+                    // Trigger color refresh when exiting settings
+                    onColorsChanged()
                 },
                 onThemeModeChanged = onThemeModeChanged,
+                onColorsChanged = onColorsChanged,
             )
 
             // Virtual dialpad overlay at bottom (only on Recents when hideVirtualDialpad is off)
@@ -820,9 +945,10 @@ fun MainScreen(activity: MainActivity? = null, onThemeModeChanged: (String) -> U
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavRoutes.CONTACTS) {
             try { searchFieldFocusRequester.requestFocus() } catch (_: Exception) {}
-        } else {
+        } else if (currentRoute == NavRoutes.RECENTS) {
             try { focusRequester.requestFocus() } catch (_: Exception) {}
         }
+        // For SETTINGS / CONTACT_DETAIL / COLOR_SETTINGS: let those screens manage their own focus
     }
 
     // Delete confirmation dialog
@@ -1065,6 +1191,8 @@ fun MainNavHost(
     onCallSelectionChanged: (Set<String>) -> Unit = {},
     selectedContactIds: Set<Long> = emptySet(),
     onContactSelectionChanged: (Set<Long>) -> Unit = {},
+    onAllCallKeys: ((Set<String>) -> Unit)? = null,
+    onAllContactIds: ((Set<Long>) -> Unit)? = null,
     recentsRefreshTrigger: Int = 0,
     contactsRefreshTrigger: Int = 0,
     recentsListState: LazyListState = rememberLazyListState(),
@@ -1075,17 +1203,24 @@ fun MainNavHost(
     onContactsItemCount: (Int) -> Unit = {},
     onActivateRecentsItem: (((Int) -> Unit)?) -> Unit = {},
     onActivateContactsItem: (((Int) -> Unit)?) -> Unit = {},
+    highlightedSettingsIndex: Int = -1,
+    settingsActivateTrigger: Int = 0,
+    onSettingsItemCount: (Int) -> Unit = {},
+    highlightedColorSettingsIndex: Int = -1,
+    colorSettingsActivateTrigger: Int = 0,
+    onColorSettingsItemCount: (Int) -> Unit = {},
     onNavigateBack: () -> Unit = {},
     onThemeModeChanged: (String) -> Unit = {},
+    onColorsChanged: () -> Unit = {},
 ) {
     NavHost(
         navController = navController,
         startDestination = NavRoutes.RECENTS,
         modifier = modifier,
-        enterTransition = { fastFadeIn },
-        exitTransition = { fastFadeOut },
-        popEnterTransition = { fastFadeIn },
-        popExitTransition = { fastFadeOut },
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None },
     ) {
         composable(NavRoutes.RECENTS) { 
             RecentsScreen(
@@ -1101,6 +1236,7 @@ fun MainNavHost(
                 onInfoClick = { group ->
                     navController.navigate(NavRoutes.contactDetail(phoneNumber = group.number))
                 },
+                onAllSelectableKeys = onAllCallKeys,
             ) 
         }
         composable(NavRoutes.CONTACTS) { 
@@ -1116,13 +1252,30 @@ fun MainNavHost(
                 onContactClick = { contactId ->
                     navController.navigate(NavRoutes.contactDetail(contactId = contactId))
                 },
+                onAllSelectableIds = onAllContactIds,
             ) 
         }
         composable(NavRoutes.SETTINGS) { 
             SettingsScreen(
+                highlightedIndex = highlightedSettingsIndex,
+                activateTrigger = settingsActivateTrigger,
+                onItemCount = onSettingsItemCount,
                 onNavigateBack = onNavigateBack,
                 onThemeModeChanged = onThemeModeChanged,
+                onColorsChanged = onColorsChanged,
+                onNavigateToColorSettings = {
+                    navController.navigate(NavRoutes.COLOR_SETTINGS)
+                },
             ) 
+        }
+        composable(NavRoutes.COLOR_SETTINGS) {
+            ColorSettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onColorsChanged = onColorsChanged,
+                highlightedIndex = highlightedColorSettingsIndex,
+                activateTrigger = colorSettingsActivateTrigger,
+                onItemCount = onColorSettingsItemCount,
+            )
         }
         composable(NavRoutes.CONTACT_DETAIL) { backStackEntry ->
             val contactId = backStackEntry.arguments?.getString("contactId")?.toLongOrNull() ?: -1

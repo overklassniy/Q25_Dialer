@@ -23,6 +23,7 @@ class CallManager {
         @SuppressLint("StaticFieldLeak")
         var inCallService: InCallService? = null
         private val calls = mutableListOf<Call>()
+        private val callCallbacks = mutableMapOf<Call, Call.Callback>()
         private val listeners = CopyOnWriteArraySet<CallManagerListener>()
         var isSpeakerOn: Boolean = false
 
@@ -31,19 +32,37 @@ class CallManager {
             for (listener in listeners) {
                 listener.onPrimaryCallChanged(call)
             }
-            call.registerCallback(object : Call.Callback() {
+            val callback = object : Call.Callback() {
                 override fun onStateChanged(call: Call, state: Int) {
+                    if (state == Call.STATE_DISCONNECTED) {
+                        // Auto-cleanup disconnected calls
+                        removeCallInternal(call)
+                    }
                     updateState()
                 }
                 override fun onDetailsChanged(call: Call, details: Call.Details) {
                     updateState()
                 }
-            })
+            }
+            callCallbacks[call] = callback
+            call.registerCallback(callback)
         }
 
         fun onCallRemoved(call: Call) {
-            calls.remove(call)
+            removeCallInternal(call)
             updateState()
+        }
+
+        private fun removeCallInternal(call: Call) {
+            calls.remove(call)
+            callCallbacks.remove(call)?.let { cb ->
+                try { call.unregisterCallback(cb) } catch (_: Exception) { }
+            }
+            // Auto-unhold the remaining call so the line is not stuck on hold
+            val remaining = calls.filter { it.state != Call.STATE_DISCONNECTED }
+            if (remaining.size == 1 && remaining[0].state == Call.STATE_HOLDING) {
+                try { remaining[0].unhold() } catch (_: Exception) { }
+            }
         }
 
         fun onAudioStateChanged(audioState: CallAudioState) {
@@ -53,17 +72,17 @@ class CallManager {
         }
 
         fun getPhoneState(): PhoneState {
-            return when (calls.size) {
+            // Filter out any lingering disconnected calls
+            val liveCalls = calls.filter { it.state != Call.STATE_DISCONNECTED }
+            return when (liveCalls.size) {
                 0 -> NoCall
-                1 -> SingleCall(calls.first())
+                1 -> SingleCall(liveCalls.first())
                 else -> {
-                    val active = calls.find { it.state == Call.STATE_ACTIVE }
-                    val other = calls.find { it != active }
-                    if (active != null && other != null) {
-                        TwoCalls(active, other)
-                    } else {
-                        TwoCalls(calls[0], calls[1])
-                    }
+                    val active = liveCalls.find { it.state == Call.STATE_ACTIVE }
+                        ?: liveCalls.find { it.state == Call.STATE_DIALING || it.state == Call.STATE_CONNECTING }
+                        ?: liveCalls[0]
+                    val held = liveCalls.first { it != active }
+                    TwoCalls(active, held)
                 }
             }
         }
@@ -99,11 +118,7 @@ class CallManager {
         fun swap() {
             val state = getPhoneState()
             if (state is TwoCalls) {
-                if (state.active.state == Call.STATE_ACTIVE) {
-                    state.active.hold()
-                } else {
-                    state.held.hold()
-                }
+                state.active.hold()
             }
         }
 
@@ -122,6 +137,19 @@ class CallManager {
             isSpeakerOn = on
             val route = if (on) CallAudioState.ROUTE_SPEAKER else CallAudioState.ROUTE_WIRED_OR_EARPIECE
             inCallService?.setAudioRoute(route)
+        }
+
+        fun setAudioRoute(route: Int) {
+            isSpeakerOn = route == CallAudioState.ROUTE_SPEAKER
+            inCallService?.setAudioRoute(route)
+        }
+
+        fun getCurrentAudioRoute(): Int {
+            return inCallService?.callAudioState?.route ?: CallAudioState.ROUTE_EARPIECE
+        }
+
+        fun getSupportedAudioRoutes(): Int {
+            return inCallService?.callAudioState?.supportedRouteMask ?: CallAudioState.ROUTE_EARPIECE
         }
 
         fun playDtmf(char: Char) {

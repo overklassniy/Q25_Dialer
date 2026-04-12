@@ -19,12 +19,18 @@
     <string name="end_call">End call</string>
     <string name="answer">Answer</string>
     <string name="decline">Decline</string>
+    <string name="message">Message</string>
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>
     <string name="speaker">Speaker</string>
     <string name="hold">Hold</string>
     <string name="unhold">Resume</string>
     <string name="add_call">Add call</string>
+    <string name="audio_output">Audio output</string>
+    <string name="audio_earpiece">Earpiece</string>
+    <string name="audio_bluetooth">Bluetooth</string>
+    <string name="call_notes">Notes</string>
+    <string name="call_notes_hint">Type notes during the call…</string>
     <string name="swap">Swap</string>
     <string name="merge">Merge</string>
     <string name="calling">Calling…</string>
@@ -138,6 +144,15 @@
     <string name="settings_up_to_date">Up to date</string>
     <string name="settings_open_github">Open GitHub</string>
     <string name="settings_checking_updates">Checking for updates…</string>
+    <string name="settings_changelog">Changelog</string>
+    <string name="settings_changelog_desc">View version history</string>
+    <string name="settings_changelog_loading">Loading changelog…</string>
+    <string name="settings_changelog_error">Failed to load changelog</string>
+    <string name="settings_github">Source code</string>
+    <string name="settings_github_desc">View on GitHub</string>
+    <string name="settings_donate">Support the developer</string>
+    <string name="settings_donate_desc">Donate via DonationAlerts</string>
+    <string name="close">Close</string>
 
     <!-- Confirmation dialogs -->
     <string name="delete_confirmation_title">Delete</string>
@@ -156,4 +171,34 @@
     <string name="language_system">System default</string>
     <string name="language_en">English</string>
     <string name="language_ru">Русский</string>
+
+    <!-- Custom colors -->
+    <string name="settings_custom_colors">Custom colors</string>
+    <string name="settings_custom_colors_desc">Customize theme colors</string>
+    <string name="settings_reset_colors">Reset colors to default</string>
+    <string name="settings_reset_colors_desc">Restore original theme colors</string>
+    <string name="color_primary">Primary</string>
+    <string name="color_secondary">Secondary</string>
+    <string name="color_background">Background</string>
+    <string name="color_surface">Surface</string>
+    <string name="color_on_primary">On primary (text on primary)</string>
+    <string name="color_on_background">On background (text on background)</string>
+    <string name="color_on_surface">On surface (text on surface)</string>
+    <string name="color_surface_variant">Surface variant (filter/chip bg)</string>
+    <string name="color_on_surface_variant">On surface variant (secondary text)</string>
+    <string name="color_section_call_screen">Call screen colors</string>
+    <string name="color_call_background">Call background</string>
+    <string name="color_call_text">Call text</string>
+    <string name="color_call_accent">Call accent</string>
+    <string name="color_call_end_button">End call button</string>
+    <string name="color_call_accept_button">Accept call button</string>
+    <string name="color_call_hold_bar">On-hold bar background</string>
+    <string name="color_reset">Reset</string>
+    <string name="colors_reset_done">Colors reset to default</string>
+    <string name="color_picker_title">Choose color</string>
+    <string name="color_hue">Hue</string>
+    <string name="on_hold_label">On hold</string>
+    <string name="swap_calls">Swap</string>
+    <string name="settings_fullscreen_avatar">Fullscreen contact photo</string>
+    <string name="settings_fullscreen_avatar_desc">Show contact photo as full-screen background during calls</string>
 </resources>

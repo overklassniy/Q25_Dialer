@@ -44,6 +44,40 @@ class PreferencesManager(context: Context) {
         get() = prefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM
         set(value) = prefs.edit().putString(KEY_THEME_MODE, value).apply()
 
+    fun getCustomColor(key: String): Long? {
+        return if (prefs.contains(key)) prefs.getLong(key, 0L) else null
+    }
+
+    fun setCustomColor(key: String, colorValue: Long) {
+        prefs.edit().putLong(key, colorValue).apply()
+    }
+
+    fun removeCustomColor(key: String) {
+        prefs.edit().remove(key).apply()
+    }
+
+    fun resetCustomColors() {
+        val editor = prefs.edit()
+        ALL_COLOR_KEYS.forEach { editor.remove(it) }
+        editor.apply()
+    }
+
+    fun hasCustomColors(): Boolean {
+        return ALL_COLOR_KEYS.any { prefs.contains(it) }
+    }
+
+    var fullscreenAvatar: Boolean
+        get() = prefs.getBoolean(KEY_FULLSCREEN_AVATAR, false)
+        set(value) = prefs.edit().putBoolean(KEY_FULLSCREEN_AVATAR, value).apply()
+
+    fun getCallNote(phoneNumber: String): String {
+        return prefs.getString("$KEY_CALL_NOTE_PREFIX$phoneNumber", "") ?: ""
+    }
+
+    fun setCallNote(phoneNumber: String, note: String) {
+        prefs.edit().putString("$KEY_CALL_NOTE_PREFIX$phoneNumber", note).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "q25_dialer_prefs"
         private const val KEY_HIDE_VIRTUAL_DIALPAD = "hide_virtual_dialpad"
@@ -55,6 +89,34 @@ class PreferencesManager(context: Context) {
         private const val KEY_DISABLE_VERTICAL_ARROWS = "disable_vertical_arrows"
         private const val KEY_DISABLE_HORIZONTAL_ARROWS = "disable_horizontal_arrows"
         private const val KEY_THEME_MODE = "theme_mode"
+
+        const val KEY_COLOR_PRIMARY = "custom_color_primary"
+        const val KEY_COLOR_SECONDARY = "custom_color_secondary"
+        const val KEY_COLOR_BACKGROUND = "custom_color_background"
+        const val KEY_COLOR_SURFACE = "custom_color_surface"
+        const val KEY_COLOR_ON_PRIMARY = "custom_color_on_primary"
+        const val KEY_COLOR_ON_BACKGROUND = "custom_color_on_background"
+        const val KEY_COLOR_ON_SURFACE = "custom_color_on_surface"
+        const val KEY_COLOR_SURFACE_VARIANT = "custom_color_surface_variant"
+        const val KEY_COLOR_ON_SURFACE_VARIANT = "custom_color_on_surface_variant"
+
+        const val KEY_COLOR_CALL_BACKGROUND = "custom_color_call_background"
+        const val KEY_COLOR_CALL_TEXT = "custom_color_call_text"
+        const val KEY_COLOR_CALL_ACCENT = "custom_color_call_accent"
+        const val KEY_COLOR_CALL_END_BUTTON = "custom_color_call_end_button"
+        const val KEY_COLOR_CALL_ACCEPT_BUTTON = "custom_color_call_accept_button"
+        const val KEY_COLOR_CALL_HOLD_BAR = "custom_color_call_hold_bar"
+
+        private const val KEY_FULLSCREEN_AVATAR = "fullscreen_avatar"
+        private const val KEY_CALL_NOTE_PREFIX = "call_note_"
+
+        val ALL_COLOR_KEYS = listOf(
+            KEY_COLOR_PRIMARY, KEY_COLOR_SECONDARY, KEY_COLOR_BACKGROUND, KEY_COLOR_SURFACE,
+            KEY_COLOR_ON_PRIMARY, KEY_COLOR_ON_BACKGROUND, KEY_COLOR_ON_SURFACE,
+            KEY_COLOR_SURFACE_VARIANT, KEY_COLOR_ON_SURFACE_VARIANT,
+            KEY_COLOR_CALL_BACKGROUND, KEY_COLOR_CALL_TEXT, KEY_COLOR_CALL_ACCENT,
+            KEY_COLOR_CALL_END_BUTTON, KEY_COLOR_CALL_ACCEPT_BUTTON, KEY_COLOR_CALL_HOLD_BAR,
+        )
 
         const val THEME_SYSTEM = "system"
         const val THEME_DARK = "dark"

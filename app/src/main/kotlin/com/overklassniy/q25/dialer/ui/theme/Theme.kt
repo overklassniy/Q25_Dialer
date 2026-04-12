@@ -4,6 +4,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import com.overklassniy.q25.dialer.data.PreferencesManager
 
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
@@ -63,9 +67,30 @@ private val LightColorScheme = lightColorScheme(
 fun Q25DialerTheme(
     darkTheme: Boolean = true,
     dynamicColor: Boolean = false,
+    colorRefreshKey: Int = 0,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val context = LocalContext.current
+    val prefs = PreferencesManager(context)
+
+    val baseScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+
+    // Re-read colors when refresh key changes
+    val colorScheme = remember(darkTheme, colorRefreshKey) {
+        fun c(key: String) = prefs.getCustomColor(key)?.let { Color(it.toULong()) }
+        baseScheme.copy(
+        primary = c(PreferencesManager.KEY_COLOR_PRIMARY) ?: baseScheme.primary,
+        onPrimary = c(PreferencesManager.KEY_COLOR_ON_PRIMARY) ?: baseScheme.onPrimary,
+        secondary = c(PreferencesManager.KEY_COLOR_SECONDARY) ?: baseScheme.secondary,
+        background = c(PreferencesManager.KEY_COLOR_BACKGROUND) ?: baseScheme.background,
+        onBackground = c(PreferencesManager.KEY_COLOR_ON_BACKGROUND) ?: baseScheme.onBackground,
+        surface = c(PreferencesManager.KEY_COLOR_SURFACE) ?: baseScheme.surface,
+        onSurface = c(PreferencesManager.KEY_COLOR_ON_SURFACE) ?: baseScheme.onSurface,
+            surfaceVariant = c(PreferencesManager.KEY_COLOR_SURFACE_VARIANT) ?: baseScheme.surfaceVariant,
+            onSurfaceVariant = c(PreferencesManager.KEY_COLOR_ON_SURFACE_VARIANT) ?: baseScheme.onSurfaceVariant,
+        )
+    }
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,

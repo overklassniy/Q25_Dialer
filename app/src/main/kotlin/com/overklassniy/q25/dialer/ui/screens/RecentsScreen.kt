@@ -92,6 +92,7 @@ fun RecentsScreen(
     onItemCount: (Int) -> Unit = {},
     onActivateItem: (((Int) -> Unit)?) -> Unit = {},
     onInfoClick: (GroupedCallLog) -> Unit = {},
+    onAllSelectableKeys: ((Set<String>) -> Unit)? = null,
 ) {
     val context = LocalContext.current
 
@@ -117,6 +118,31 @@ fun RecentsScreen(
     val contactsRepository = remember { if (hasContactsPerm) ContactsRepository(context) else null }
 
     var callLog by remember { mutableStateOf<List<GroupedCallLog>?>(null) }
+    // Increment this to force reload from ContentObserver
+    var callLogRefreshTrigger by remember { mutableIntStateOf(0) }
+
+    // Real-time call log refresh via ContentObserver
+    val callLogObserver = remember {
+        object : android.database.ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                // Trigger reload on next composition
+                callLogRefreshTrigger++
+            }
+        }
+    }
+    DisposableEffect(hasCallLogPerm) {
+        if (hasCallLogPerm) {
+            context.contentResolver.registerContentObserver(
+                android.provider.CallLog.Calls.CONTENT_URI,
+                true,
+                callLogObserver
+            )
+        }
+        onDispose {
+            context.contentResolver.unregisterContentObserver(callLogObserver)
+        }
+    }
     var allContacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
     var blockedNumbers by remember { mutableStateOf<Set<String>>(emptySet()) }
     var blockedNumbersRefreshTrigger by remember { mutableIntStateOf(0) }
@@ -128,8 +154,8 @@ fun RecentsScreen(
         blockedNumbers = loadBlockedNumbers(context)
     }
 
-    // Reload data when permissions change or after deletion
-    LaunchedEffect(hasCallLogPerm, hasContactsPerm, refreshTrigger) {
+    // Reload data when permissions change, after deletion, or when call log changes
+    LaunchedEffect(hasCallLogPerm, hasContactsPerm, refreshTrigger, callLogRefreshTrigger) {
         if (hasCallLogPerm) {
             try {
                 callLog = CallLogRepository(context).getGroupedCallLog()
@@ -205,7 +231,7 @@ fun RecentsScreen(
         filtered
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         // Call type filters - matching layout_recents_filters.xml
         if (showFilters) {
             RecentsFilterBar(
@@ -249,9 +275,12 @@ fun RecentsScreen(
                 }
             }
             else -> {
-                // Report item count and register activation callback
+                // Report item count and all selectable keys
                 LaunchedEffect(filteredCallLog) {
                     onItemCount(filteredCallLog.size)
+                    onAllSelectableKeys?.invoke(
+                        filteredCallLog.map { "${it.number}_${it.latestDate}" }.toSet()
+                    )
                 }
                 // Scroll to keep highlighted item visible
                 LaunchedEffect(highlightedIndex) {

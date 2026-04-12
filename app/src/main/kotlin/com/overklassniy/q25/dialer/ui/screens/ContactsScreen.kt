@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -70,6 +69,7 @@ fun ContactsScreen(
     onActivateItem: (((Int) -> Unit)?) -> Unit = {},
     onContactClick: (Long) -> Unit = {},
     onFavoriteToggled: () -> Unit = {},
+    onAllSelectableIds: ((Set<Long>) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val hasPermission = remember { PermissionHelper.hasContactsPermission(context) }
@@ -126,9 +126,8 @@ fun ContactsScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         when {
             filteredContacts == null -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                // Loading state - show empty screen without spinner
+                Box(Modifier.fillMaxSize())
             }
             filteredContacts!!.first.isEmpty() && filteredContacts!!.second.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -149,9 +148,10 @@ fun ContactsScreen(
                     favoriteContacts + regularContacts
                 }
 
-                // Report item count and register activation callback
+                // Report item count and all selectable IDs
                 LaunchedEffect(allContactsList) {
                     onItemCount(allContactsList.size)
+                    onAllSelectableIds?.invoke(allContactsList.map { it.id }.toSet())
                 }
                 // Scroll to keep highlighted item visible (offset for header items)
                 LaunchedEffect(highlightedIndex, favoriteContacts.size, regularContacts.size) {
@@ -176,7 +176,7 @@ fun ContactsScreen(
                     onDispose { onActivateItem(null) }
                 }
 
-                Row(modifier = Modifier.fillMaxSize()) {
+                Row(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                         
                     // Main contact list – limited fling speed for smooth scroll
                     val density = LocalDensity.current

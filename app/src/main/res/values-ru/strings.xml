@@ -19,12 +19,18 @@
     <string name="end_call">Завершить</string>
     <string name="answer">Ответить</string>
     <string name="decline">Отклонить</string>
+    <string name="message">Сообщение</string>
     <string name="mute">Без звука</string>
     <string name="unmute">Включить звук</string>
     <string name="speaker">Динамик</string>
     <string name="hold">Удержать</string>
     <string name="unhold">Продолжить</string>
     <string name="add_call">Добавить вызов</string>
+    <string name="audio_output">Аудиовыход</string>
+    <string name="audio_earpiece">Телефон</string>
+    <string name="audio_bluetooth">Bluetooth</string>
+    <string name="call_notes">Заметки</string>
+    <string name="call_notes_hint">Записывайте заметки во время звонка…</string>
     <string name="swap">Переключить</string>
     <string name="merge">Объединить</string>
     <string name="calling">Вызов…</string>
@@ -138,6 +144,15 @@
     <string name="settings_up_to_date">Актуальная версия</string>
     <string name="settings_open_github">Открыть GitHub</string>
     <string name="settings_checking_updates">Проверка обновлений…</string>
+    <string name="settings_changelog">Список изменений</string>
+    <string name="settings_changelog_desc">Посмотреть историю версий</string>
+    <string name="settings_changelog_loading">Загрузка списка изменений…</string>
+    <string name="settings_changelog_error">Не удалось загрузить список изменений</string>
+    <string name="settings_github">Исходный код</string>
+    <string name="settings_github_desc">Открыть на GitHub</string>
+    <string name="settings_donate">Поддержать разработчика</string>
+    <string name="settings_donate_desc">Донат через DonationAlerts</string>
+    <string name="close">Закрыть</string>
 
     <!-- Confirmation dialogs -->
     <string name="delete_confirmation_title">Удаление</string>
@@ -156,4 +171,34 @@
     <string name="language_system">Системный</string>
     <string name="language_en">English</string>
     <string name="language_ru">Русский</string>
+
+    <!-- Custom colors -->
+    <string name="settings_custom_colors">Пользовательские цвета</string>
+    <string name="settings_custom_colors_desc">Настроить цвета темы</string>
+    <string name="settings_reset_colors">Сбросить цвета</string>
+    <string name="settings_reset_colors_desc">Восстановить исходные цвета темы</string>
+    <string name="color_primary">Основной</string>
+    <string name="color_secondary">Вторичный</string>
+    <string name="color_background">Фон</string>
+    <string name="color_surface">Поверхность</string>
+    <string name="color_on_primary">На основном (текст на основном)</string>
+    <string name="color_on_background">На фоне (текст на фоне)</string>
+    <string name="color_on_surface">На поверхности (текст на поверхности)</string>
+    <string name="color_surface_variant">Вариант поверхности (фон фильтров)</string>
+    <string name="color_on_surface_variant">На варианте поверхности (вторичный текст)</string>
+    <string name="color_section_call_screen">Цвета экрана звонка</string>
+    <string name="color_call_background">Фон звонка</string>
+    <string name="color_call_text">Текст звонка</string>
+    <string name="color_call_accent">Акцент звонка</string>
+    <string name="color_call_end_button">Кнопка завершения</string>
+    <string name="color_call_accept_button">Кнопка принятия</string>
+    <string name="color_call_hold_bar">Фон панели удержания</string>
+    <string name="color_reset">Сбросить</string>
+    <string name="colors_reset_done">Цвета сброшены</string>
+    <string name="color_picker_title">Выберите цвет</string>
+    <string name="color_hue">Оттенок</string>
+    <string name="on_hold_label">На удержании</string>
+    <string name="swap_calls">Переключить</string>
+    <string name="settings_fullscreen_avatar">Фото контакта на весь экран</string>
+    <string name="settings_fullscreen_avatar_desc">Показывать фото контакта как фон во время звонка</string>
 </resources>

@@ -20,6 +20,7 @@ class ContactsRepository(private val context: Context) {
             ContactsContract.Contacts._ID,
             ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
             ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
+            ContactsContract.Contacts.PHOTO_URI,
             ContactsContract.Contacts.STARRED,
             ContactsContract.Contacts.LOOKUP_KEY,
         )
@@ -34,6 +35,7 @@ class ContactsRepository(private val context: Context) {
             val idIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID)
             val nameIdx = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)
             val photoIdx = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)
+            val photoFullIdx = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
             val starredIdx = cursor.getColumnIndex(ContactsContract.Contacts.STARRED)
             val lookupIdx = cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
 
@@ -43,6 +45,7 @@ class ContactsRepository(private val context: Context) {
                     id = id,
                     name = cursor.getString(nameIdx) ?: "",
                     photoUri = cursor.getString(photoIdx),
+                    photoFullUri = cursor.getString(photoFullIdx),
                     starred = cursor.getInt(starredIdx) == 1,
                     lookupKey = cursor.getString(lookupIdx),
                 )
@@ -140,6 +143,7 @@ class ContactsRepository(private val context: Context) {
             ContactsContract.PhoneLookup._ID,
             ContactsContract.PhoneLookup.DISPLAY_NAME,
             ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
+            ContactsContract.PhoneLookup.PHOTO_URI,
             ContactsContract.PhoneLookup.LOOKUP_KEY,
         )
 
@@ -150,6 +154,7 @@ class ContactsRepository(private val context: Context) {
                     name = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)) ?: "",
                     phoneNumbers = persistentListOf(PhoneNumber(number, PhoneUtils.normalizeNumber(number))),
                     photoUri = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)),
+                    photoFullUri = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)),
                     lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.LOOKUP_KEY)),
                 )
             }
@@ -162,6 +167,7 @@ class ContactsRepository(private val context: Context) {
             ContactsContract.Contacts._ID,
             ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
             ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
+            ContactsContract.Contacts.PHOTO_URI,
             ContactsContract.Contacts.LOOKUP_KEY,
         )
         context.contentResolver.query(
@@ -177,6 +183,7 @@ class ContactsRepository(private val context: Context) {
                     name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)) ?: "",
                     phoneNumbers = persistentListOf(PhoneNumber(originalNumber, PhoneUtils.normalizeNumber(originalNumber))),
                     photoUri = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)),
+                    photoFullUri = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)),
                     lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)),
                 )
             }
@@ -207,10 +214,11 @@ class ContactsRepository(private val context: Context) {
         val id: Long,
         val name: String,
         val photoUri: String?,
+        val photoFullUri: String? = null,
         val starred: Boolean,
         val lookupKey: String?,
         val phoneNumbers: MutableList<PhoneNumber> = mutableListOf(),
     ) {
-        fun toContact() = Contact(id, name, phoneNumbers.toImmutableList(), photoUri, starred, lookupKey)
+        fun toContact() = Contact(id, name, phoneNumbers.toImmutableList(), photoUri, photoFullUri, starred, lookupKey)
     }
 }

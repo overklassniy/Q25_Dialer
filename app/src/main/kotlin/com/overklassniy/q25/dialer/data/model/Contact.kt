@@ -9,6 +9,7 @@ data class Contact(
     val name: String,
     val phoneNumbers: ImmutableList<PhoneNumber>,
     val photoUri: String? = null,
+    val photoFullUri: String? = null,
     val starred: Boolean = false,
     val lookupKey: String? = null,
 ) {
