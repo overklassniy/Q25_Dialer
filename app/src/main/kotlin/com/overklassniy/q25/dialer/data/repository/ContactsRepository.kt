@@ -145,6 +145,7 @@ class ContactsRepository(private val context: Context) {
             ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
             ContactsContract.PhoneLookup.PHOTO_URI,
             ContactsContract.PhoneLookup.LOOKUP_KEY,
+            ContactsContract.PhoneLookup.STARRED,
         )
 
         context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
@@ -156,6 +157,7 @@ class ContactsRepository(private val context: Context) {
                     photoUri = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)),
                     photoFullUri = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)),
                     lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.LOOKUP_KEY)),
+                    starred = cursor.getInt(cursor.getColumnIndex(ContactsContract.PhoneLookup.STARRED)) == 1,
                 )
             }
         }
@@ -169,6 +171,7 @@ class ContactsRepository(private val context: Context) {
             ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
             ContactsContract.Contacts.PHOTO_URI,
             ContactsContract.Contacts.LOOKUP_KEY,
+            ContactsContract.Contacts.STARRED,
         )
         context.contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
@@ -185,6 +188,7 @@ class ContactsRepository(private val context: Context) {
                     photoUri = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)),
                     photoFullUri = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)),
                     lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)),
+                    starred = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.STARRED)) == 1,
                 )
             }
         }

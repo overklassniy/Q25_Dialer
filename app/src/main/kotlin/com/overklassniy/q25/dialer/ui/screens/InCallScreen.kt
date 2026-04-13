@@ -60,6 +60,12 @@ import com.overklassniy.q25.dialer.ui.components.ContactAvatar
 import com.overklassniy.q25.dialer.ui.theme.CallGreen
 import com.overklassniy.q25.dialer.ui.theme.CallRed
 import com.overklassniy.q25.dialer.ui.theme.DefaultCallBackground
+import com.overklassniy.q25.dialer.ui.theme.LightCallControlBtnBg
+import com.overklassniy.q25.dialer.ui.theme.LightCallDialpadBg
+import com.overklassniy.q25.dialer.ui.theme.LightCallDialpadText
+import com.overklassniy.q25.dialer.ui.theme.LightCallHoldBar
+import com.overklassniy.q25.dialer.ui.theme.LightCallText
+import com.overklassniy.q25.dialer.ui.theme.LightDefaultCallBackground
 import com.overklassniy.q25.dialer.ui.theme.Primary
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -97,6 +103,7 @@ fun InCallScreen(
     heldCallerName: String? = null,
     onSwapCall: () -> Unit = {},
     onMergeCall: () -> Unit = {},
+    isDarkTheme: Boolean = true,
 ) {
     var showNotesSheet by remember { mutableStateOf(false) }
 
@@ -105,22 +112,31 @@ fun InCallScreen(
     val prefs = remember { PreferencesManager(context) }
     fun cc(key: String, default: Color) = prefs.getCustomColor(key)?.let { Color(it.toULong()) } ?: default
 
+    // Default colors based on theme
+    val defaultBg = if (isDarkTheme) DefaultCallBackground else LightDefaultCallBackground
+    val defaultText = if (isDarkTheme) Color.White else LightCallText
+    val defaultControlBtnBg = if (isDarkTheme) Color(0xFF3A3A3C) else LightCallControlBtnBg
+    val defaultControlBtnIcon = if (isDarkTheme) Color.White else LightCallText
+    val defaultDialpadBg = if (isDarkTheme) Color(0xFF1C1C1E) else LightCallDialpadBg
+    val defaultDialpadText = if (isDarkTheme) Color.White else LightCallDialpadText
+    val defaultHoldBar = if (isDarkTheme) Color(0xFF2C2C2E) else LightCallHoldBar
+
     // Incoming call colors (used when isIncoming = true)
-    val incomingCallBg = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_BACKGROUND, DefaultCallBackground) }
-    val incomingCallText = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_TEXT, Color.White) }
+    val incomingCallBg = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_BACKGROUND, defaultBg) }
+    val incomingCallText = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_TEXT, defaultText) }
     val incomingCallDeclineBtn = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_DECLINE_BUTTON, CallRed) }
     val incomingCallAcceptBtn = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_ACCEPT_BUTTON, CallGreen) }
     val incomingCallMessageBtn = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_MESSAGE_BUTTON, Primary) }
 
     // Ongoing call colors (used when isIncoming = false)
-    val ongoingCallBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_BACKGROUND, DefaultCallBackground) }
-    val ongoingCallText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_TEXT, Color.White) }
+    val ongoingCallBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_BACKGROUND, defaultBg) }
+    val ongoingCallText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_TEXT, defaultText) }
     val ongoingCallEndBtn = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_END_BUTTON, CallRed) }
-    val ongoingCallControlBtnBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG, Color(0xFF3A3A3C)) }
-    val ongoingCallControlBtnIcon = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON, Color.White) }
-    val ongoingCallDialpadBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_BG, Color(0xFF1C1C1E)) }
-    val ongoingCallDialpadText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT, Color.White) }
-    val ongoingCallHoldBar = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_HOLD_BAR, Color(0xFF2C2C2E)) }
+    val ongoingCallControlBtnBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG, defaultControlBtnBg) }
+    val ongoingCallControlBtnIcon = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON, defaultControlBtnIcon) }
+    val ongoingCallDialpadBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_BG, defaultDialpadBg) }
+    val ongoingCallDialpadText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT, defaultDialpadText) }
+    val ongoingCallHoldBar = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_HOLD_BAR, defaultHoldBar) }
 
     // Select active colors based on call state
     val callBg = if (isIncoming) incomingCallBg else ongoingCallBg
@@ -142,11 +158,12 @@ fun InCallScreen(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
-            // Dark scrim overlay for readability
+            // Dark scrim overlay for readability (lighter in light theme)
+            val scrimAlpha = if (isDarkTheme) 0.5f else 0.3f
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
+                    .background(Color.Black.copy(alpha = scrimAlpha)),
             )
         }
         // Top section: on-hold bar + action buttons
@@ -432,10 +449,12 @@ fun InCallScreen(
 
         // Notes overlay
         if (showNotesSheet) {
+            val overlayScrim = if (isDarkTheme) Color.Black.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.4f)
+            val notesCardBg = if (isDarkTheme) Color(0xFF2C2C2E) else Color(0xFFF5F5F5)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(overlayScrim)
                     .clickable { showNotesSheet = false },
                 contentAlignment = Alignment.Center,
             ) {
@@ -444,7 +463,7 @@ fun InCallScreen(
                         .fillMaxWidth()
                         .padding(24.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF2C2C2E))
+                        .background(notesCardBg)
                         .clickable { /* consume clicks */ }
                         .padding(16.dp),
                 ) {

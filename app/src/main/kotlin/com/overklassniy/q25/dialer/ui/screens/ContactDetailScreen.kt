@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.CallReceived
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.CallMissed
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
@@ -206,23 +207,26 @@ fun ContactDetailScreen(
             }
         }
 
-        // Action buttons: Call, SMS
+        // Action buttons: Call, SMS, Add to contacts (for unknown numbers)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             // Call button
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable {
-                    if (displayNumber.isNotEmpty()) {
-                        try {
-                            context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$displayNumber")))
-                        } catch (_: Exception) { }
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        if (displayNumber.isNotEmpty()) {
+                            try {
+                                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$displayNumber")))
+                            } catch (_: Exception) { }
+                        }
                     }
-                }.padding(16.dp),
+                    .padding(vertical = 16.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Phone,
@@ -241,13 +245,16 @@ fun ContactDetailScreen(
             // SMS button
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable {
-                    if (displayNumber.isNotEmpty()) {
-                        try {
-                            context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$displayNumber")))
-                        } catch (_: Exception) { }
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        if (displayNumber.isNotEmpty()) {
+                            try {
+                                context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$displayNumber")))
+                            } catch (_: Exception) { }
+                        }
                     }
-                }.padding(16.dp),
+                    .padding(vertical = 16.dp),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Message,
@@ -261,6 +268,40 @@ fun ContactDetailScreen(
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.primary,
                 )
+            }
+
+            // Add to contacts button (only for unknown numbers)
+            if (contact == null) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            if (displayNumber.isNotEmpty()) {
+                                try {
+                                    val insertIntent = Intent(Intent.ACTION_INSERT).apply {
+                                        type = ContactsContract.Contacts.CONTENT_TYPE
+                                        putExtra(ContactsContract.Intents.Insert.PHONE, displayNumber)
+                                    }
+                                    context.startActivity(insertIntent)
+                                } catch (_: Exception) { }
+                            }
+                        }
+                        .padding(vertical = 16.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.PersonAdd,
+                        contentDescription = stringResource(R.string.add_contact),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp),
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.add),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
 

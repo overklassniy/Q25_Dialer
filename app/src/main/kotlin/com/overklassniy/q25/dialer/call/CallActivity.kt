@@ -16,9 +16,11 @@ import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.overklassniy.q25.dialer.data.PreferencesManager
 import com.overklassniy.q25.dialer.data.repository.ContactsRepository
@@ -125,8 +127,17 @@ class CallActivity : ComponentActivity() {
         }
 
         setContent {
-            Q25DialerTheme(dynamicColor = false) {
+            val systemDark = isSystemInDarkTheme()
+            val isDarkTheme = remember(prefs.themeMode) {
+                when (prefs.themeMode) {
+                    PreferencesManager.THEME_DARK -> true
+                    PreferencesManager.THEME_LIGHT -> false
+                    else -> systemDark
+                }
+            }
+            Q25DialerTheme(darkTheme = isDarkTheme, dynamicColor = false) {
                 InCallScreen(
+                    isDarkTheme = isDarkTheme,
                     callerName = callerName,
                     callerNumber = callerNumber,
                     callerPhotoUri = callerPhotoUri,

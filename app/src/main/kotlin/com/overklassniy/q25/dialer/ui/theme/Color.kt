@@ -85,3 +85,11 @@ val LightSurfaceVariant = Color(0xFFE0E0E0)
 val LightOnSurfaceVariant = Color(0xFF757575)
 val LightOutline = Color(0xFFBDBDBD)
 val LightOutlineVariant = Color(0xFFE0E0E0)
+
+// Light call screen default colors
+val LightDefaultCallBackground = Color(0xFFF5F5F5)
+val LightCallText = Color(0xFF212121)
+val LightCallControlBtnBg = Color(0xFFE0E0E0)
+val LightCallDialpadBg = Color(0xFFFFFFFF)
+val LightCallDialpadText = Color(0xFF212121)
+val LightCallHoldBar = Color(0xFFE8E8E8)

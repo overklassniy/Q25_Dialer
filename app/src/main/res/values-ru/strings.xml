@@ -54,7 +54,7 @@
     <!-- Permissions -->
     <string name="set_default_dialer_failed">Не удалось установить звонилку по умолчанию</string>
     <string name="enable_accessibility_service">Включите службу специальных возможностей для поддержки физической клавиатуры</string>
-    <string name="accessibility_service_description">Необходима для поддержки физической QWERTY-клавиатуры. Перехватывает нажатия клавиш для ввода номера с аппаратных кнопок.</string>
+    <string name="accessibility_service_description">Необходима для поддержки физической клавиатуры. Перехватывает нажатия клавиш с аппаратных кнопок.</string>
 
     <!-- Call log -->
     <string name="all">Все</string>
@@ -92,6 +92,8 @@
     <string name="other">Другой</string>
     <string name="phone_numbers">Номера телефонов</string>
     <string name="edit_contact">Редактировать контакт</string>
+    <string name="add_contact">Добавить в контакты</string>
+    <string name="add">Добавить</string>
     <string name="all_contacts">Контакты</string>
 
     <!-- Notification -->
@@ -104,7 +106,7 @@
     <string name="onboarding_default_dialer">Установить как приложение для звонков</string>
     <string name="onboarding_default_dialer_desc">Необходимо для совершения звонков</string>
     <string name="onboarding_accessibility">Включить поддержку клавиатуры</string>
-    <string name="onboarding_accessibility_desc">Необходимо для физической QWERTY-клавиатуры</string>
+    <string name="onboarding_accessibility_desc">Необходимо для физической клавиатуры</string>
     <string name="onboarding_done">Готово</string>
     <string name="onboarding_next">Далее</string>
     <string name="onboarding_skip">Пропустить</string>
@@ -114,7 +116,7 @@
     <!-- Settings -->
     <string name="settings_dialpad_section">Набор номера</string>
     <string name="settings_hide_virtual_dialpad">Скрыть виртуальную клавиатуру</string>
-    <string name="settings_hide_virtual_dialpad_desc">Использовать физическую QWERTY-клавиатуру для набора номера</string>
+    <string name="settings_hide_virtual_dialpad_desc">Использовать физическую клавиатуру для набора номера</string>
     <string name="settings_accessibility_service">Служба специальных возможностей</string>
     <string name="settings_accessibility_enabled">Включена</string>
     <string name="settings_accessibility_disabled">Отключена – нажмите для включения</string>
@@ -134,10 +136,10 @@
     <string name="settings_send_anonymous_stats">Отправка анонимной статистики</string>
     <string name="settings_send_anonymous_stats_desc">Помогите улучшить приложение, отправляя отчёты об ошибках и данные о производительности</string>
     <string name="settings_keyboard_section">Клавиатура</string>
-    <string name="settings_disable_vertical_arrows">Отключить вертикальные стрелки</string>
-    <string name="settings_disable_vertical_arrows_desc">Отключить KEY_UP и KEY_DOWN для навигации по списку</string>
-    <string name="settings_disable_horizontal_arrows">Отключить горизонтальные стрелки</string>
-    <string name="settings_disable_horizontal_arrows_desc">Отключить KEY_LEFT и KEY_RIGHT</string>
+    <string name="settings_disable_vertical_arrows">Отключить вертикальные жесты трек-пада</string>
+    <string name="settings_disable_vertical_arrows_desc">Отключить жесты "вверх" и "вниз" для навигации по списку</string>
+    <string name="settings_disable_horizontal_arrows">Отключить горизонтальные жесты трек-пада</string>
+    <string name="settings_disable_horizontal_arrows_desc">Отключить жесты "влево" и "вправо"</string>
     <string name="settings_about_section">О приложении</string>
     <string name="settings_version">Версия %s</string>
     <string name="settings_update_available">Доступно обновление: %s</string>
@@ -180,10 +182,10 @@
     <string name="color_primary">Основной</string>
     <string name="color_secondary">Вторичный</string>
     <string name="color_background">Фон</string>
-    <string name="color_surface">Поверхность</string>
+    <string name="color_surface">Панели</string>
     <string name="color_on_primary">На основном (текст на основном)</string>
     <string name="color_on_background">На фоне (текст на фоне)</string>
-    <string name="color_on_surface">На поверхности (текст на поверхности)</string>
+    <string name="color_on_surface">На поверхности (текст на панелях)</string>
     <string name="color_surface_variant">Вариант поверхности (фон фильтров)</string>
     <string name="color_on_surface_variant">На варианте поверхности (вторичный текст)</string>
     <!-- Incoming call screen colors -->

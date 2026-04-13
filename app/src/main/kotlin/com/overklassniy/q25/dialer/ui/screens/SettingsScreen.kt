@@ -6,6 +6,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.layout.onPlaced
@@ -75,7 +77,13 @@ fun SettingsScreen(
     var expandedBottomNav by remember { mutableStateOf(prefs.expandedBottomNav) }
     var themeMode by remember { mutableStateOf(prefs.themeMode) }
     var showThemeDialog by remember { mutableStateOf(false) }
-    var themeDialogHighlightedIndex by remember { mutableIntStateOf(0) }
+    var themeDialogHighlightedIndex by remember { mutableIntStateOf(
+        when (prefs.themeMode) {
+            PreferencesManager.THEME_DARK -> 1
+            PreferencesManager.THEME_LIGHT -> 2
+            else -> 0
+        }
+    ) }
     var themeDialogActivateTrigger by remember { mutableIntStateOf(0) }
     var disableVerticalArrows by remember { mutableStateOf(prefs.disableVerticalArrows) }
     var disableHorizontalArrows by remember { mutableStateOf(prefs.disableHorizontalArrows) }
@@ -108,6 +116,17 @@ fun SettingsScreen(
     }
 
     val scrollState = rememberScrollState()
+
+    // Reset highlighted index to current theme when dialog opens
+    LaunchedEffect(showThemeDialog) {
+        if (showThemeDialog) {
+            themeDialogHighlightedIndex = when (prefs.themeMode) {
+                PreferencesManager.THEME_DARK -> 1
+                PreferencesManager.THEME_LIGHT -> 2
+                else -> 0
+            }
+        }
+    }
 
     // Intercept key events when theme dialog is open
     DisposableEffect(showThemeDialog) {
@@ -744,9 +763,11 @@ private fun ThemePickerDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(horizontal = 4.dp)
+                            .clip(RoundedCornerShape(8.dp))
                             .background(backgroundColor)
                             .clickable { onSelect(mode) }
-                            .padding(vertical = 12.dp),
+                            .padding(vertical = 12.dp, horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(

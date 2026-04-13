@@ -92,6 +92,8 @@
     <string name="other">Other</string>
     <string name="phone_numbers">Phone numbers</string>
     <string name="edit_contact">Edit contact</string>
+    <string name="add_contact">Add to contacts</string>
+    <string name="add">Add</string>
     <string name="all_contacts">Contacts</string>
 
     <!-- Notification -->
@@ -134,10 +136,10 @@
     <string name="settings_send_anonymous_stats">Send anonymous statistics</string>
     <string name="settings_send_anonymous_stats_desc">Help improve the app by sending crash reports and performance data</string>
     <string name="settings_keyboard_section">Keyboard</string>
-    <string name="settings_disable_vertical_arrows">Disable vertical arrows</string>
-    <string name="settings_disable_vertical_arrows_desc">Disable KEY_UP and KEY_DOWN for list navigation</string>
-    <string name="settings_disable_horizontal_arrows">Disable horizontal arrows</string>
-    <string name="settings_disable_horizontal_arrows_desc">Disable KEY_LEFT and KEY_RIGHT</string>
+    <string name="settings_disable_vertical_arrows">Disable trackpad vertical gestures</string>
+    <string name="settings_disable_vertical_arrows_desc">Disable "up" and "down" gestures for list navigation</string>
+    <string name="settings_disable_horizontal_arrows">Disable trackpad horizontal gestures</string>
+    <string name="settings_disable_horizontal_arrows_desc">Disable "left" and "right" gestures</string>
     <string name="settings_about_section">About</string>
     <string name="settings_version">Version %s</string>
     <string name="settings_update_available">Update available: %s</string>
@@ -180,9 +182,9 @@
     <string name="color_primary">Primary</string>
     <string name="color_secondary">Secondary</string>
     <string name="color_background">Background</string>
-    <string name="color_surface">Surface</string>
+    <string name="color_surface">Panels</string>
     <string name="color_on_primary">On primary (text on primary)</string>
-    <string name="color_on_background">On background (text on background)</string>
+    <string name="color_on_background">On background (text on panels)</string>
     <string name="color_on_surface">On surface (text on surface)</string>
     <string name="color_surface_variant">Surface variant (filter/chip bg)</string>
     <string name="color_on_surface_variant">On surface variant (secondary text)</string>
