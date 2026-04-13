@@ -56,6 +56,10 @@ fun CallControlBar(
     currentAudioRoute: Int = CallAudioState.ROUTE_EARPIECE,
     isBluetoothAvailable: Boolean = false,
     onSetAudioRoute: (Int) -> Unit = {},
+    controlButtonBgColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    controlButtonIconColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    endCallButtonColor: Color = CallRed,
+    textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     var showAudioRouteDialog by remember { mutableStateOf(false) }
 
@@ -76,12 +80,18 @@ fun CallControlBar(
                 isActive = isMuted,
                 onClick = onToggleMute,
                 modifier = Modifier.weight(1f),
+                activeBgColor = controlButtonBgColor,
+                activeIconColor = controlButtonIconColor,
+                textColor = textColor,
             )
             CallControlButton(
                 icon = Icons.Filled.Dialpad,
                 label = stringResource(R.string.dialpad),
                 onClick = onShowDialpad,
                 modifier = Modifier.weight(1f),
+                activeBgColor = controlButtonBgColor,
+                activeIconColor = controlButtonIconColor,
+                textColor = textColor,
             )
             // If Bluetooth is available, show BT icon; tapping opens audio route picker
             if (isBluetoothAvailable) {
@@ -101,6 +111,9 @@ fun CallControlBar(
                     isActive = currentAudioRoute == CallAudioState.ROUTE_BLUETOOTH || isSpeakerOn,
                     onClick = { showAudioRouteDialog = true },
                     modifier = Modifier.weight(1f),
+                    activeBgColor = controlButtonBgColor,
+                    activeIconColor = controlButtonIconColor,
+                    textColor = textColor,
                 )
             } else {
                 CallControlButton(
@@ -109,6 +122,9 @@ fun CallControlBar(
                     isActive = isSpeakerOn,
                     onClick = onToggleSpeaker,
                     modifier = Modifier.weight(1f),
+                    activeBgColor = controlButtonBgColor,
+                    activeIconColor = controlButtonIconColor,
+                    textColor = textColor,
                 )
             }
         }
@@ -122,6 +138,9 @@ fun CallControlBar(
                 isActive = isOnHold,
                 onClick = onToggleHold,
                 modifier = Modifier.weight(1f),
+                activeBgColor = controlButtonBgColor,
+                activeIconColor = controlButtonIconColor,
+                textColor = textColor,
             )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -134,14 +153,14 @@ fun CallControlBar(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(CallRed)
+                        .background(endCallButtonColor)
                         .clickable(onClick = onEndCall)
                         .padding(14.dp),
                 )
                 Text(
                     text = stringResource(R.string.end_call),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = textColor,
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
@@ -221,9 +240,12 @@ fun CallControlButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isActive: Boolean = false,
+    activeBgColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    activeIconColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
-    val bgColor = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-    val iconColor = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val bgColor = if (isActive) activeBgColor.copy(alpha = 0.8f) else activeBgColor
+    val iconColor = activeIconColor
 
     Column(
         modifier = modifier,
@@ -243,7 +265,7 @@ fun CallControlButton(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = textColor,
             modifier = Modifier.padding(top = 4.dp),
         )
     }

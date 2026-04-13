@@ -186,13 +186,24 @@
     <string name="color_on_surface">On surface (text on surface)</string>
     <string name="color_surface_variant">Surface variant (filter/chip bg)</string>
     <string name="color_on_surface_variant">On surface variant (secondary text)</string>
-    <string name="color_section_call_screen">Call screen colors</string>
-    <string name="color_call_background">Call background</string>
-    <string name="color_call_text">Call text</string>
-    <string name="color_call_accent">Call accent</string>
-    <string name="color_call_end_button">End call button</string>
-    <string name="color_call_accept_button">Accept call button</string>
-    <string name="color_call_hold_bar">On-hold bar background</string>
+    <!-- Incoming call screen colors -->
+    <string name="color_section_incoming_call_screen">Incoming call screen colors</string>
+    <string name="color_incoming_call_background">Incoming call background</string>
+    <string name="color_incoming_call_text">Incoming call text</string>
+    <string name="color_incoming_call_decline_button">Decline button</string>
+    <string name="color_incoming_call_accept_button">Accept button</string>
+    <string name="color_incoming_call_message_button">Message button</string>
+
+    <!-- Ongoing call screen colors -->
+    <string name="color_section_ongoing_call_screen">Ongoing call screen colors</string>
+    <string name="color_ongoing_call_background">Ongoing call background</string>
+    <string name="color_ongoing_call_text">Ongoing call text</string>
+    <string name="color_ongoing_call_end_button">End call button</string>
+    <string name="color_ongoing_call_control_button_bg">Control buttons background</string>
+    <string name="color_ongoing_call_control_button_icon">Control buttons icon</string>
+    <string name="color_ongoing_call_dialpad_bg">Dialpad background</string>
+    <string name="color_ongoing_call_dialpad_text">Dialpad text</string>
+    <string name="color_ongoing_call_hold_bar">On-hold bar background</string>
     <string name="color_reset">Reset</string>
     <string name="colors_reset_done">Colors reset to default</string>
     <string name="color_picker_title">Choose color</string>

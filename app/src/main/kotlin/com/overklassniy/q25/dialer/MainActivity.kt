@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -103,6 +104,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -497,7 +499,8 @@ fun MainScreen(
 
     // Track current route
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route ?: NavRoutes.RECENTS
+    val navRoute = currentBackStackEntry?.destination?.route
+    val isOnOverlayScreen = navRoute != null && navRoute != "main_tabs"
 
     // Bottom nav items - 2 tabs only (no favorites, no settings)
     val bottomNavItems = listOf(
@@ -505,8 +508,15 @@ fun MainScreen(
         BottomNavItem(NavRoutes.CONTACTS, R.string.contacts, Icons.Filled.Contacts, Icons.Outlined.Contacts),
     )
 
-    // Derive selected tab from current route
-    val selectedTab = bottomNavItems.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
+    // Tab selection — independent of NavController so tabs stay alive in composition
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+
+    // Derive current route from tab selection + overlay state
+    val currentRoute = when {
+        isOnOverlayScreen -> navRoute!!
+        selectedTab == 0 -> NavRoutes.RECENTS
+        else -> NavRoutes.CONTACTS
+    }
 
     // Update currentScreen immediately for dispatchKeyEvent (synchronous, not LaunchedEffect)
     MainActivity.currentScreen = currentRoute
@@ -616,11 +626,7 @@ fun MainScreen(
                 }
                 MainActivity.currentScreen == NavRoutes.CONTACTS -> {
                     contactsQuery = ""
-                    navController.navigate(NavRoutes.RECENTS) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    selectedTab = 0
                     true
                 }
                 MainActivity.currentScreen == NavRoutes.SETTINGS -> {
@@ -691,21 +697,13 @@ fun MainScreen(
                     when (keyCode) {
                         KeyEvent.KEYCODE_DPAD_RIGHT -> {
                             if (currentRoute == NavRoutes.RECENTS) {
-                                navController.navigate(NavRoutes.CONTACTS) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                selectedTab = 1
                                 true
                             } else false
                         }
                         KeyEvent.KEYCODE_DPAD_LEFT -> {
                             if (currentRoute == NavRoutes.CONTACTS) {
-                                navController.navigate(NavRoutes.RECENTS) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                selectedTab = 0
                                 true
                             } else false
                         }
@@ -834,15 +832,7 @@ fun MainScreen(
                 BottomNavigation(
                     items = bottomNavItems,
                     selectedIndex = selectedTab,
-                    onItemSelected = { index ->
-                        navController.navigate(bottomNavItems[index].route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+                    onItemSelected = { index -> selectedTab = index },
                     expanded = expandedBottomNav.value,
                 )
             }
@@ -871,42 +861,109 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            MainNavHost(
+            // Persistent tabs (always in composition, never destroyed on switch)
+            val onMainTab = !isOnOverlayScreen
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset {
+                        if (onMainTab && selectedTab == 0) IntOffset.Zero
+                        else IntOffset(100_000, 0)
+                    },
+            ) {
+                RecentsScreen(
+                    searchQuery = recentsQuery,
+                    showFilters = true,
+                    selectedCallKeys = selectedCallKeys,
+                    onSelectionChanged = { selectedCallKeys = it },
+                    refreshTrigger = recentsRefreshTrigger,
+                    listState = recentsListState,
+                    highlightedIndex = highlightedRecentsIndex,
+                    onItemCount = { recentsItemCount = it },
+                    onActivateItem = { onActivateRecentsItem = it },
+                    onInfoClick = { group ->
+                        navController.navigate(NavRoutes.contactDetail(phoneNumber = group.number))
+                    },
+                    onAllSelectableKeys = { allCallKeys = it },
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset {
+                        if (onMainTab && selectedTab == 1) IntOffset.Zero
+                        else IntOffset(100_000, 0)
+                    },
+            ) {
+                ContactsScreen(
+                    searchQuery = contactsQuery,
+                    selectedContactIds = selectedContactIds,
+                    onSelectionChanged = { selectedContactIds = it },
+                    refreshTrigger = contactsRefreshTrigger,
+                    listState = contactsListState,
+                    highlightedIndex = highlightedContactsIndex,
+                    onItemCount = { contactsItemCount = it },
+                    onActivateItem = { onActivateContactsItem = it },
+                    onContactClick = { contactId ->
+                        navController.navigate(NavRoutes.contactDetail(contactId = contactId))
+                    },
+                    onAllSelectableIds = { allContactIds = it },
+                )
+            }
+
+            // Overlay screens (Settings, Contact Detail, etc.)
+            NavHost(
                 navController = navController,
-                modifier = Modifier.fillMaxSize(),
-                recentsQuery = recentsQuery,
-                contactsQuery = contactsQuery,
-                currentRoute = currentRoute,
-                selectedCallKeys = selectedCallKeys,
-                onCallSelectionChanged = { selectedCallKeys = it },
-                selectedContactIds = selectedContactIds,
-                onContactSelectionChanged = { selectedContactIds = it },
-                onAllCallKeys = { allCallKeys = it },
-                onAllContactIds = { allContactIds = it },
-                recentsRefreshTrigger = recentsRefreshTrigger,
-                contactsRefreshTrigger = contactsRefreshTrigger,
-                recentsListState = recentsListState,
-                contactsListState = contactsListState,
-                highlightedRecentsIndex = highlightedRecentsIndex,
-                highlightedContactsIndex = highlightedContactsIndex,
-                onRecentsItemCount = { recentsItemCount = it },
-                onContactsItemCount = { contactsItemCount = it },
-                onActivateRecentsItem = { onActivateRecentsItem = it },
-                onActivateContactsItem = { onActivateContactsItem = it },
-                highlightedSettingsIndex = highlightedSettingsIndex,
-                settingsActivateTrigger = settingsActivateTrigger,
-                onSettingsItemCount = { settingsItemCount = it },
-                highlightedColorSettingsIndex = highlightedColorSettingsIndex,
-                colorSettingsActivateTrigger = colorSettingsActivateTrigger,
-                onColorSettingsItemCount = { colorSettingsItemCount = it },
-                onNavigateBack = {
-                    navController.popBackStack()
-                    // Trigger color refresh when exiting settings
-                    onColorsChanged()
-                },
-                onThemeModeChanged = onThemeModeChanged,
-                onColorsChanged = onColorsChanged,
-            )
+                startDestination = "main_tabs",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset {
+                        if (isOnOverlayScreen) IntOffset.Zero
+                        else IntOffset(100_000, 0)
+                    },
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None },
+            ) {
+                composable("main_tabs") { /* empty – tabs rendered above */ }
+                composable(NavRoutes.SETTINGS) {
+                    SettingsScreen(
+                        highlightedIndex = highlightedSettingsIndex,
+                        activateTrigger = settingsActivateTrigger,
+                        onItemCount = { settingsItemCount = it },
+                        onNavigateBack = {
+                            navController.popBackStack()
+                            onColorsChanged()
+                        },
+                        onThemeModeChanged = onThemeModeChanged,
+                        onColorsChanged = onColorsChanged,
+                        onNavigateToColorSettings = {
+                            navController.navigate(NavRoutes.COLOR_SETTINGS)
+                        },
+                    )
+                }
+                composable(NavRoutes.COLOR_SETTINGS) {
+                    ColorSettingsScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onColorsChanged = onColorsChanged,
+                        highlightedIndex = highlightedColorSettingsIndex,
+                        activateTrigger = colorSettingsActivateTrigger,
+                        onItemCount = { colorSettingsItemCount = it },
+                    )
+                }
+                composable(NavRoutes.CONTACT_DETAIL) { backStackEntry ->
+                    val contactId = backStackEntry.arguments?.getString("contactId")?.toLongOrNull() ?: -1
+                    val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
+                    ContactDetailScreen(
+                        contactId = contactId,
+                        phoneNumber = if (phoneNumber.isNotEmpty() && phoneNumber != "-1") phoneNumber else null,
+                        onNavigateBack = { navController.popBackStack() },
+                    )
+                }
+            }
 
             // Virtual dialpad overlay at bottom (only on Recents when hideVirtualDialpad is off)
             AnimatedVisibility(
@@ -1175,115 +1232,6 @@ private fun BottomNavItemInternal(
                 contentDescription = stringResource(item.labelRes),
                 modifier = Modifier.size(28.dp),
                 tint = tint,
-            )
-        }
-    }
-}
-
-@Composable
-fun MainNavHost(
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
-    recentsQuery: String = "",
-    contactsQuery: String = "",
-    currentRoute: String = NavRoutes.RECENTS,
-    selectedCallKeys: Set<String> = emptySet(),
-    onCallSelectionChanged: (Set<String>) -> Unit = {},
-    selectedContactIds: Set<Long> = emptySet(),
-    onContactSelectionChanged: (Set<Long>) -> Unit = {},
-    onAllCallKeys: ((Set<String>) -> Unit)? = null,
-    onAllContactIds: ((Set<Long>) -> Unit)? = null,
-    recentsRefreshTrigger: Int = 0,
-    contactsRefreshTrigger: Int = 0,
-    recentsListState: LazyListState = rememberLazyListState(),
-    contactsListState: LazyListState = rememberLazyListState(),
-    highlightedRecentsIndex: Int = -1,
-    highlightedContactsIndex: Int = -1,
-    onRecentsItemCount: (Int) -> Unit = {},
-    onContactsItemCount: (Int) -> Unit = {},
-    onActivateRecentsItem: (((Int) -> Unit)?) -> Unit = {},
-    onActivateContactsItem: (((Int) -> Unit)?) -> Unit = {},
-    highlightedSettingsIndex: Int = -1,
-    settingsActivateTrigger: Int = 0,
-    onSettingsItemCount: (Int) -> Unit = {},
-    highlightedColorSettingsIndex: Int = -1,
-    colorSettingsActivateTrigger: Int = 0,
-    onColorSettingsItemCount: (Int) -> Unit = {},
-    onNavigateBack: () -> Unit = {},
-    onThemeModeChanged: (String) -> Unit = {},
-    onColorsChanged: () -> Unit = {},
-) {
-    NavHost(
-        navController = navController,
-        startDestination = NavRoutes.RECENTS,
-        modifier = modifier,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None },
-        popEnterTransition = { EnterTransition.None },
-        popExitTransition = { ExitTransition.None },
-    ) {
-        composable(NavRoutes.RECENTS) { 
-            RecentsScreen(
-                searchQuery = recentsQuery,
-                showFilters = true,
-                selectedCallKeys = selectedCallKeys,
-                onSelectionChanged = onCallSelectionChanged,
-                refreshTrigger = recentsRefreshTrigger,
-                listState = recentsListState,
-                highlightedIndex = highlightedRecentsIndex,
-                onItemCount = onRecentsItemCount,
-                onActivateItem = onActivateRecentsItem,
-                onInfoClick = { group ->
-                    navController.navigate(NavRoutes.contactDetail(phoneNumber = group.number))
-                },
-                onAllSelectableKeys = onAllCallKeys,
-            ) 
-        }
-        composable(NavRoutes.CONTACTS) { 
-            ContactsScreen(
-                searchQuery = contactsQuery,
-                selectedContactIds = selectedContactIds,
-                onSelectionChanged = onContactSelectionChanged,
-                refreshTrigger = contactsRefreshTrigger,
-                listState = contactsListState,
-                highlightedIndex = highlightedContactsIndex,
-                onItemCount = onContactsItemCount,
-                onActivateItem = onActivateContactsItem,
-                onContactClick = { contactId ->
-                    navController.navigate(NavRoutes.contactDetail(contactId = contactId))
-                },
-                onAllSelectableIds = onAllContactIds,
-            ) 
-        }
-        composable(NavRoutes.SETTINGS) { 
-            SettingsScreen(
-                highlightedIndex = highlightedSettingsIndex,
-                activateTrigger = settingsActivateTrigger,
-                onItemCount = onSettingsItemCount,
-                onNavigateBack = onNavigateBack,
-                onThemeModeChanged = onThemeModeChanged,
-                onColorsChanged = onColorsChanged,
-                onNavigateToColorSettings = {
-                    navController.navigate(NavRoutes.COLOR_SETTINGS)
-                },
-            ) 
-        }
-        composable(NavRoutes.COLOR_SETTINGS) {
-            ColorSettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onColorsChanged = onColorsChanged,
-                highlightedIndex = highlightedColorSettingsIndex,
-                activateTrigger = colorSettingsActivateTrigger,
-                onItemCount = onColorSettingsItemCount,
-            )
-        }
-        composable(NavRoutes.CONTACT_DETAIL) { backStackEntry ->
-            val contactId = backStackEntry.arguments?.getString("contactId")?.toLongOrNull() ?: -1
-            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber") ?: ""
-            ContactDetailScreen(
-                contactId = contactId,
-                phoneNumber = if (phoneNumber.isNotEmpty() && phoneNumber != "-1") phoneNumber else null,
-                onNavigateBack = { navController.popBackStack() },
             )
         }
     }

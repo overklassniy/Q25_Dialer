@@ -7,27 +7,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.BitmapImage
-import coil3.compose.AsyncImage
-import coil3.imageLoader
-import coil3.memory.MemoryCache
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.size.Size
 import com.overklassniy.q25.dialer.ui.theme.LetterBackgroundColors
+import com.overklassniy.q25.dialer.util.AvatarCache
 
 private val WhitespaceRegex = "\\s+".toRegex()
 
@@ -56,8 +52,7 @@ fun ContactAvatar(
             LetterBackgroundColors[colorIndex]
         }
     }
-    
-    // Render avatar: synchronous cache check avoids flicker on tab switches
+
     Box(
         modifier = modifier
             .size(size)
@@ -67,22 +62,17 @@ fun ContactAvatar(
     ) {
         if (photoUri != null) {
             val context = LocalContext.current
-            val density = LocalDensity.current
-            val sizePx = remember(size, density) { with(density) { size.roundToPx() } }
 
-            // Synchronous memory cache lookup — avoids one-frame letter→photo flicker
-            val cachedBitmap = remember(photoUri) {
-                (context.imageLoader.memoryCache
-                    ?.get(MemoryCache.Key(photoUri))
-                    ?.image as? BitmapImage)
-                    ?.bitmap
-                    ?.asImageBitmap()
+            // Initialise state from the process-level singleton cache.
+            // On first visit the cache is empty -> null; on tab switch it is populated -> instant.
+            var bitmap by remember(photoUri) {
+                mutableStateOf(AvatarCache.get(photoUri))
             }
 
-            if (cachedBitmap != null) {
-                // Memory cache hit: render bitmap directly (instant, no async delay)
+            if (bitmap != null) {
+                // Cache hit — render synchronously, zero async delay, no flicker
                 Image(
-                    bitmap = cachedBitmap,
+                    bitmap = bitmap!!,
                     contentDescription = null,
                     modifier = Modifier
                         .size(size)
@@ -90,29 +80,16 @@ fun ContactAvatar(
                     contentScale = ContentScale.Crop,
                 )
             } else {
-                // Cache miss: show initials, load image asynchronously
+                // Cache miss (first-ever load): show initials, load in background
                 Text(
                     text = initials,
                     color = Color.White,
                     fontSize = (size.value * 0.4f).sp,
                     fontWeight = FontWeight.Medium,
                 )
-                val imageRequest = remember(photoUri, sizePx) {
-                    ImageRequest.Builder(context)
-                        .data(photoUri)
-                        .size(Size(sizePx, sizePx))
-                        .memoryCacheKey(photoUri)
-                        .crossfade(true)
-                        .build()
+                LaunchedEffect(photoUri) {
+                    bitmap = AvatarCache.loadAndCache(context, photoUri)
                 }
-                AsyncImage(
-                    model = imageRequest,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(size)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                )
             }
         } else {
             Text(

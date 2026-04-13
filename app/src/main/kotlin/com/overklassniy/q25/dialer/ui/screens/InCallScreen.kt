@@ -100,16 +100,31 @@ fun InCallScreen(
 ) {
     var showNotesSheet by remember { mutableStateOf(false) }
 
-    // Read custom call screen colors
+    // Read custom call screen colors (separate for incoming and ongoing calls)
     val context = LocalContext.current
     val prefs = remember { PreferencesManager(context) }
     fun cc(key: String, default: Color) = prefs.getCustomColor(key)?.let { Color(it.toULong()) } ?: default
-    val callBg = remember { cc(PreferencesManager.KEY_COLOR_CALL_BACKGROUND, DefaultCallBackground) }
-    val callText = remember { cc(PreferencesManager.KEY_COLOR_CALL_TEXT, Color.White) }
-    val callAccent = remember { cc(PreferencesManager.KEY_COLOR_CALL_ACCENT, Primary) }
-    val callEndBtn = remember { cc(PreferencesManager.KEY_COLOR_CALL_END_BUTTON, CallRed) }
-    val callAcceptBtn = remember { cc(PreferencesManager.KEY_COLOR_CALL_ACCEPT_BUTTON, CallGreen) }
-    val callHoldBar = remember { cc(PreferencesManager.KEY_COLOR_CALL_HOLD_BAR, Color(0xFF2C2C2E)) }
+
+    // Incoming call colors (used when isIncoming = true)
+    val incomingCallBg = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_BACKGROUND, DefaultCallBackground) }
+    val incomingCallText = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_TEXT, Color.White) }
+    val incomingCallDeclineBtn = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_DECLINE_BUTTON, CallRed) }
+    val incomingCallAcceptBtn = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_ACCEPT_BUTTON, CallGreen) }
+    val incomingCallMessageBtn = remember { cc(PreferencesManager.KEY_COLOR_INCOMING_CALL_MESSAGE_BUTTON, Primary) }
+
+    // Ongoing call colors (used when isIncoming = false)
+    val ongoingCallBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_BACKGROUND, DefaultCallBackground) }
+    val ongoingCallText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_TEXT, Color.White) }
+    val ongoingCallEndBtn = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_END_BUTTON, CallRed) }
+    val ongoingCallControlBtnBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG, Color(0xFF3A3A3C)) }
+    val ongoingCallControlBtnIcon = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON, Color.White) }
+    val ongoingCallDialpadBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_BG, Color(0xFF1C1C1E)) }
+    val ongoingCallDialpadText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT, Color.White) }
+    val ongoingCallHoldBar = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_HOLD_BAR, Color(0xFF2C2C2E)) }
+
+    // Select active colors based on call state
+    val callBg = if (isIncoming) incomingCallBg else ongoingCallBg
+    val callText = if (isIncoming) incomingCallText else ongoingCallText
 
     Box(
         modifier = Modifier
@@ -141,7 +156,7 @@ fun InCallScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(callHoldBar)
+                        .background(ongoingCallHoldBar)
                         .clickable(onClick = onSwapCall)
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -287,6 +302,8 @@ fun InCallScreen(
                 // Compact dialpad grid (smaller keys for 720x720)
                 CompactDialpadGrid(
                     onKeyPress = { onDtmf(it) },
+                    backgroundColor = ongoingCallDialpadBg,
+                    textColor = ongoingCallDialpadText,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -307,11 +324,11 @@ fun InCallScreen(
                     Icon(
                         imageVector = Icons.Filled.CallEnd,
                         contentDescription = stringResource(R.string.end_call),
-                        tint = callText,
+                        tint = ongoingCallText,
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(callEndBtn)
+                            .background(ongoingCallEndBtn)
                             .clickable(onClick = onEndCall)
                             .padding(12.dp),
                     )
@@ -332,11 +349,11 @@ fun InCallScreen(
                             Icon(
                                 imageVector = Icons.Filled.CallEnd,
                                 contentDescription = stringResource(R.string.decline),
-                                tint = callText,
+                                tint = incomingCallText,
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(callEndBtn)
+                                    .background(incomingCallDeclineBtn)
                                     .clickable(onClick = onDeclineCall)
                                     .padding(12.dp),
                             )
@@ -352,11 +369,11 @@ fun InCallScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Message,
                                 contentDescription = stringResource(R.string.message),
-                                tint = callText,
+                                tint = incomingCallText,
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(callAccent)
+                                    .background(incomingCallMessageBtn)
                                     .clickable(onClick = onMessageClick)
                                     .padding(12.dp),
                             )
@@ -372,11 +389,11 @@ fun InCallScreen(
                             Icon(
                                 imageVector = Icons.Filled.Call,
                                 contentDescription = stringResource(R.string.answer),
-                                tint = callText,
+                                tint = incomingCallText,
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(callAcceptBtn)
+                                    .background(incomingCallAcceptBtn)
                                     .clickable(onClick = onAcceptCall)
                                     .padding(12.dp),
                             )
@@ -402,6 +419,10 @@ fun InCallScreen(
                         currentAudioRoute = currentAudioRoute,
                         isBluetoothAvailable = isBluetoothAvailable,
                         onSetAudioRoute = onSetAudioRoute,
+                        controlButtonBgColor = ongoingCallControlBtnBg,
+                        controlButtonIconColor = ongoingCallControlBtnIcon,
+                        endCallButtonColor = ongoingCallEndBtn,
+                        textColor = ongoingCallText,
                     )
                 }
 
@@ -479,8 +500,10 @@ fun InCallScreen(
 @Composable
 private fun CompactDialpadGrid(
     onKeyPress: (Char) -> Unit,
+    backgroundColor: Color = Color(0xFF1C1C1E),
+    textColor: Color = Color.White,
 ) {
-    val dividerColor = Color(0xFF333333)
+    val dividerColor = textColor.copy(alpha = 0.2f)
     val keys = listOf(
         listOf('1' to "", '2' to "ABC", '3' to "DEF"),
         listOf('4' to "GHI", '5' to "JKL", '6' to "MNO"),
@@ -519,14 +542,14 @@ private fun CompactDialpadGrid(
                             text = digit.toString(),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Light,
-                            color = Color.White,
+                            color = textColor,
                         )
                         if (letters.isNotEmpty()) {
                             Text(
                                 text = letters,
                                 fontSize = 7.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color.White.copy(alpha = 0.4f),
+                                color = textColor.copy(alpha = 0.4f),
                                 letterSpacing = 1.sp,
                             )
                         }

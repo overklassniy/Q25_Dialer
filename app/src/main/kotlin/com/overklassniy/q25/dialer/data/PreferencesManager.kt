@@ -100,12 +100,22 @@ class PreferencesManager(context: Context) {
         const val KEY_COLOR_SURFACE_VARIANT = "custom_color_surface_variant"
         const val KEY_COLOR_ON_SURFACE_VARIANT = "custom_color_on_surface_variant"
 
-        const val KEY_COLOR_CALL_BACKGROUND = "custom_color_call_background"
-        const val KEY_COLOR_CALL_TEXT = "custom_color_call_text"
-        const val KEY_COLOR_CALL_ACCENT = "custom_color_call_accent"
-        const val KEY_COLOR_CALL_END_BUTTON = "custom_color_call_end_button"
-        const val KEY_COLOR_CALL_ACCEPT_BUTTON = "custom_color_call_accept_button"
-        const val KEY_COLOR_CALL_HOLD_BAR = "custom_color_call_hold_bar"
+        // Incoming call screen colors
+        const val KEY_COLOR_INCOMING_CALL_BACKGROUND = "custom_color_incoming_call_background"
+        const val KEY_COLOR_INCOMING_CALL_TEXT = "custom_color_incoming_call_text"
+        const val KEY_COLOR_INCOMING_CALL_DECLINE_BUTTON = "custom_color_incoming_call_decline_button"
+        const val KEY_COLOR_INCOMING_CALL_ACCEPT_BUTTON = "custom_color_incoming_call_accept_button"
+        const val KEY_COLOR_INCOMING_CALL_MESSAGE_BUTTON = "custom_color_incoming_call_message_button"
+
+        // Ongoing call screen colors
+        const val KEY_COLOR_ONGOING_CALL_BACKGROUND = "custom_color_ongoing_call_background"
+        const val KEY_COLOR_ONGOING_CALL_TEXT = "custom_color_ongoing_call_text"
+        const val KEY_COLOR_ONGOING_CALL_END_BUTTON = "custom_color_ongoing_call_end_button"
+        const val KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG = "custom_color_ongoing_call_control_button_bg"
+        const val KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON = "custom_color_ongoing_call_control_button_icon"
+        const val KEY_COLOR_ONGOING_CALL_DIALPAD_BG = "custom_color_ongoing_call_dialpad_bg"
+        const val KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT = "custom_color_ongoing_call_dialpad_text"
+        const val KEY_COLOR_ONGOING_CALL_HOLD_BAR = "custom_color_ongoing_call_hold_bar"
 
         private const val KEY_FULLSCREEN_AVATAR = "fullscreen_avatar"
         private const val KEY_CALL_NOTE_PREFIX = "call_note_"
@@ -114,8 +124,15 @@ class PreferencesManager(context: Context) {
             KEY_COLOR_PRIMARY, KEY_COLOR_SECONDARY, KEY_COLOR_BACKGROUND, KEY_COLOR_SURFACE,
             KEY_COLOR_ON_PRIMARY, KEY_COLOR_ON_BACKGROUND, KEY_COLOR_ON_SURFACE,
             KEY_COLOR_SURFACE_VARIANT, KEY_COLOR_ON_SURFACE_VARIANT,
-            KEY_COLOR_CALL_BACKGROUND, KEY_COLOR_CALL_TEXT, KEY_COLOR_CALL_ACCENT,
-            KEY_COLOR_CALL_END_BUTTON, KEY_COLOR_CALL_ACCEPT_BUTTON, KEY_COLOR_CALL_HOLD_BAR,
+            // Incoming call colors
+            KEY_COLOR_INCOMING_CALL_BACKGROUND, KEY_COLOR_INCOMING_CALL_TEXT,
+            KEY_COLOR_INCOMING_CALL_DECLINE_BUTTON, KEY_COLOR_INCOMING_CALL_ACCEPT_BUTTON,
+            KEY_COLOR_INCOMING_CALL_MESSAGE_BUTTON,
+            // Ongoing call colors
+            KEY_COLOR_ONGOING_CALL_BACKGROUND, KEY_COLOR_ONGOING_CALL_TEXT,
+            KEY_COLOR_ONGOING_CALL_END_BUTTON, KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG,
+            KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON, KEY_COLOR_ONGOING_CALL_DIALPAD_BG,
+            KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT, KEY_COLOR_ONGOING_CALL_HOLD_BAR,
         )
 
         const val THEME_SYSTEM = "system"

@@ -186,13 +186,24 @@
     <string name="color_on_surface">На поверхности (текст на поверхности)</string>
     <string name="color_surface_variant">Вариант поверхности (фон фильтров)</string>
     <string name="color_on_surface_variant">На варианте поверхности (вторичный текст)</string>
-    <string name="color_section_call_screen">Цвета экрана звонка</string>
-    <string name="color_call_background">Фон звонка</string>
-    <string name="color_call_text">Текст звонка</string>
-    <string name="color_call_accent">Акцент звонка</string>
-    <string name="color_call_end_button">Кнопка завершения</string>
-    <string name="color_call_accept_button">Кнопка принятия</string>
-    <string name="color_call_hold_bar">Фон панели удержания</string>
+    <!-- Incoming call screen colors -->
+    <string name="color_section_incoming_call_screen">Цвета экрана входящего звонка</string>
+    <string name="color_incoming_call_background">Фон входящего звонка</string>
+    <string name="color_incoming_call_text">Текст входящего звонка</string>
+    <string name="color_incoming_call_decline_button">Кнопка отклонения</string>
+    <string name="color_incoming_call_accept_button">Кнопка принятия</string>
+    <string name="color_incoming_call_message_button">Кнопка сообщения</string>
+
+    <!-- Ongoing call screen colors -->
+    <string name="color_section_ongoing_call_screen">Цвета экрана активного звонка</string>
+    <string name="color_ongoing_call_background">Фон активного звонка</string>
+    <string name="color_ongoing_call_text">Текст активного звонка</string>
+    <string name="color_ongoing_call_end_button">Кнопка завершения</string>
+    <string name="color_ongoing_call_control_button_bg">Фон кнопок управления</string>
+    <string name="color_ongoing_call_control_button_icon">Иконки кнопок управления</string>
+    <string name="color_ongoing_call_dialpad_bg">Фон клавиатуры</string>
+    <string name="color_ongoing_call_dialpad_text">Текст клавиатуры</string>
+    <string name="color_ongoing_call_hold_bar">Фон панели удержания</string>
     <string name="color_reset">Сбросить</string>
     <string name="colors_reset_done">Цвета сброшены</string>
     <string name="color_picker_title">Выберите цвет</string>

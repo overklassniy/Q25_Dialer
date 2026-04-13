@@ -70,6 +70,8 @@ import com.overklassniy.q25.dialer.ui.theme.Primary
 import com.overklassniy.q25.dialer.ui.theme.Secondary
 import com.overklassniy.q25.dialer.ui.theme.Surface
 import com.overklassniy.q25.dialer.ui.theme.SurfaceVariant
+import com.overklassniy.q25.dialer.ui.theme.PrimaryContainer
+import com.overklassniy.q25.dialer.ui.theme.OnPrimaryContainer
 
 private val defaultColors = mapOf(
     PreferencesManager.KEY_COLOR_PRIMARY to Primary,
@@ -81,12 +83,21 @@ private val defaultColors = mapOf(
     PreferencesManager.KEY_COLOR_ON_SURFACE to OnSurface,
     PreferencesManager.KEY_COLOR_SURFACE_VARIANT to SurfaceVariant,
     PreferencesManager.KEY_COLOR_ON_SURFACE_VARIANT to OnSurfaceVariant,
-    PreferencesManager.KEY_COLOR_CALL_BACKGROUND to DefaultCallBackground,
-    PreferencesManager.KEY_COLOR_CALL_TEXT to Color.White,
-    PreferencesManager.KEY_COLOR_CALL_ACCENT to Primary,
-    PreferencesManager.KEY_COLOR_CALL_END_BUTTON to CallRed,
-    PreferencesManager.KEY_COLOR_CALL_ACCEPT_BUTTON to CallGreen,
-    PreferencesManager.KEY_COLOR_CALL_HOLD_BAR to Color(0xFF2C2C2E),
+    // Incoming call screen colors
+    PreferencesManager.KEY_COLOR_INCOMING_CALL_BACKGROUND to DefaultCallBackground,
+    PreferencesManager.KEY_COLOR_INCOMING_CALL_TEXT to Color.White,
+    PreferencesManager.KEY_COLOR_INCOMING_CALL_DECLINE_BUTTON to CallRed,
+    PreferencesManager.KEY_COLOR_INCOMING_CALL_ACCEPT_BUTTON to CallGreen,
+    PreferencesManager.KEY_COLOR_INCOMING_CALL_MESSAGE_BUTTON to Primary,
+    // Ongoing call screen colors
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_BACKGROUND to DefaultCallBackground,
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_TEXT to Color.White,
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_END_BUTTON to CallRed,
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG to SurfaceVariant,
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON to OnSurfaceVariant,
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_BG to Color(0xFF1C1C1E),
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT to Color.White,
+    PreferencesManager.KEY_COLOR_ONGOING_CALL_HOLD_BAR to Color(0xFF2C2C2E),
 )
 
 @Composable
@@ -121,14 +132,30 @@ fun ColorSettingsScreen(
         }
     }
 
-    val callColorEntries = remember(colorRefreshKey) {
+    val incomingCallColorEntries = remember(colorRefreshKey) {
         listOf(
-            PreferencesManager.KEY_COLOR_CALL_BACKGROUND to R.string.color_call_background,
-            PreferencesManager.KEY_COLOR_CALL_TEXT to R.string.color_call_text,
-            PreferencesManager.KEY_COLOR_CALL_ACCENT to R.string.color_call_accent,
-            PreferencesManager.KEY_COLOR_CALL_END_BUTTON to R.string.color_call_end_button,
-            PreferencesManager.KEY_COLOR_CALL_ACCEPT_BUTTON to R.string.color_call_accept_button,
-            PreferencesManager.KEY_COLOR_CALL_HOLD_BAR to R.string.color_call_hold_bar,
+            PreferencesManager.KEY_COLOR_INCOMING_CALL_BACKGROUND to R.string.color_incoming_call_background,
+            PreferencesManager.KEY_COLOR_INCOMING_CALL_TEXT to R.string.color_incoming_call_text,
+            PreferencesManager.KEY_COLOR_INCOMING_CALL_DECLINE_BUTTON to R.string.color_incoming_call_decline_button,
+            PreferencesManager.KEY_COLOR_INCOMING_CALL_ACCEPT_BUTTON to R.string.color_incoming_call_accept_button,
+            PreferencesManager.KEY_COLOR_INCOMING_CALL_MESSAGE_BUTTON to R.string.color_incoming_call_message_button,
+        ).map { (key, labelRes) ->
+            val saved = prefs.getCustomColor(key)
+            val displayColor = if (saved != null) Color(saved.toULong()) else defaultColors[key]!!
+            Triple(key, labelRes, displayColor)
+        }
+    }
+
+    val ongoingCallColorEntries = remember(colorRefreshKey) {
+        listOf(
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_BACKGROUND to R.string.color_ongoing_call_background,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_TEXT to R.string.color_ongoing_call_text,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_END_BUTTON to R.string.color_ongoing_call_end_button,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG to R.string.color_ongoing_call_control_button_bg,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON to R.string.color_ongoing_call_control_button_icon,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_BG to R.string.color_ongoing_call_dialpad_bg,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT to R.string.color_ongoing_call_dialpad_text,
+            PreferencesManager.KEY_COLOR_ONGOING_CALL_HOLD_BAR to R.string.color_ongoing_call_hold_bar,
         ).map { (key, labelRes) ->
             val saved = prefs.getCustomColor(key)
             val displayColor = if (saved != null) Color(saved.toULong()) else defaultColors[key]!!
@@ -138,10 +165,10 @@ fun ColorSettingsScreen(
 
     val scrollState = rememberScrollState()
 
-    // Compute total items: 9 theme colors + 7 call colors + 1 reset button (if visible)
+    // Compute total items: 9 theme colors + 5 incoming call colors + 8 ongoing call colors + 1 reset button (if visible)
     val hasCustomColors = prefs.hasCustomColors()
-    // Use constant sizes (9 theme + 7 call) + optional reset button
-    val totalItems = 9 + 7 + (if (hasCustomColors) 1 else 0)
+    // Use constant sizes (9 theme + 5 incoming + 8 ongoing) + optional reset button
+    val totalItems = 9 + 5 + 8 + (if (hasCustomColors) 1 else 0)
     LaunchedEffect(totalItems) { onItemCount(totalItems) }
 
     // Track positions of items for scroll
@@ -190,16 +217,39 @@ fun ColorSettingsScreen(
             )
         }
 
-        // Section: Call screen colors
+        // Section: Incoming call screen colors
         Text(
-            text = stringResource(R.string.color_section_call_screen).uppercase(),
+            text = stringResource(R.string.color_section_incoming_call_screen).uppercase(),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
         )
 
-        callColorEntries.forEachIndexed { index, (key, labelRes, displayColor) ->
+        incomingCallColorEntries.forEachIndexed { index, (key, labelRes, displayColor) ->
+            val rowIndex = nextIndex()
+            ColorSettingRow(
+                title = stringResource(labelRes),
+                displayColor = displayColor,
+                isCustom = prefs.getCustomColor(key) != null,
+                onClick = { showColorPicker = key },
+                isHighlighted = highlightedIndex == rowIndex,
+                activateTrigger = activateTrigger,
+                onActivate = { showColorPicker = key },
+                onPositioned = { pos -> itemPositions[rowIndex] = pos },
+            )
+        }
+
+        // Section: Ongoing call screen colors
+        Text(
+            text = stringResource(R.string.color_section_ongoing_call_screen).uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
+        )
+
+        ongoingCallColorEntries.forEachIndexed { index, (key, labelRes, displayColor) ->
             val rowIndex = nextIndex()
             ColorSettingRow(
                 title = stringResource(labelRes),
