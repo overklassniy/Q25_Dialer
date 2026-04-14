@@ -10,8 +10,11 @@ import com.overklassniy.q25.dialer.call.CallActivity
 import com.overklassniy.q25.dialer.call.CallManager
 import com.overklassniy.q25.dialer.call.NoCall
 import com.overklassniy.q25.dialer.call.SingleCall
+import com.overklassniy.q25.dialer.data.PreferencesManager
 
 class QwertyAccessibilityService : AccessibilityService() {
+
+    private val prefs by lazy { PreferencesManager(this) }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         // Not used – we only need key event filtering
@@ -35,9 +38,11 @@ class QwertyAccessibilityService : AccessibilityService() {
             }
             when (keyCode) {
                 KeyEvent.KEYCODE_HOME -> {
-                    val s = (CallManager.getPhoneState() as? SingleCall)?.call?.state
-                    if (s == Call.STATE_RINGING) CallManager.reject() else CallManager.hangup()
-                    return true
+                    if (!prefs.disableHomeKeyHangup) {
+                        val s = (CallManager.getPhoneState() as? SingleCall)?.call?.state
+                        if (s == Call.STATE_RINGING) CallManager.reject() else CallManager.hangup()
+                        return true
+                    }
                 }
                 KeyEvent.KEYCODE_CALL -> {
                     val s = (CallManager.getPhoneState() as? SingleCall)?.call?.state

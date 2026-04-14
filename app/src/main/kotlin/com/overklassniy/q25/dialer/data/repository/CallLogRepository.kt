@@ -11,6 +11,8 @@ import kotlinx.coroutines.withContext
 
 class CallLogRepository(private val context: Context) {
 
+    private val contactsRepository by lazy { ContactsRepository(context) }
+
     suspend fun getCallLog(limit: Int = 500): List<CallLogEntry> = withContext(Dispatchers.IO) {
         val entries = mutableListOf<CallLogEntry>()
 
@@ -43,12 +45,23 @@ class CallLogRepository(private val context: Context) {
 
             var count = 0
             while (cursor.moveToNext() && count < limit) {
+                val number = cursor.getString(numberIdx) ?: ""
+                val cachedName = cursor.getString(nameIdx)
+                val cachedPhotoUri = cursor.getString(photoIdx)
+
+                // Resolve contact info in real-time to handle added/removed contacts
+                val resolvedContact = if (number.isNotEmpty()) {
+                    try {
+                        contactsRepository.getContactByNumber(number)
+                    } catch (_: Exception) { null }
+                } else null
+
                 entries.add(
                     CallLogEntry(
                         id = cursor.getLong(idIdx),
-                        number = cursor.getString(numberIdx) ?: "",
-                        name = cursor.getString(nameIdx),
-                        photoUri = cursor.getString(photoIdx),
+                        number = number,
+                        name = resolvedContact?.name ?: cachedName,
+                        photoUri = resolvedContact?.photoUri ?: cachedPhotoUri,
                         date = cursor.getLong(dateIdx),
                         duration = cursor.getLong(durationIdx),
                         type = cursor.getInt(typeIdx),

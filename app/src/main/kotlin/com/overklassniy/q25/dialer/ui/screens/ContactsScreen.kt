@@ -79,8 +79,34 @@ fun ContactsScreen(
     val scope = rememberCoroutineScope()
     val isSelectionMode = selectedContactIds.isNotEmpty()
 
-    // Reload data when permissions change or after deletion
-    LaunchedEffect(hasPermission, refreshTrigger) {
+    // Trigger to reload data when contacts change (added/removed)
+    var contactsRefreshTrigger by remember { mutableIntStateOf(0) }
+
+    // Real-time contacts refresh via ContentObserver
+    val contactsObserver = remember {
+        object : android.database.ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                // Trigger reload on next composition
+                contactsRefreshTrigger++
+            }
+        }
+    }
+    DisposableEffect(hasPermission) {
+        if (hasPermission) {
+            context.contentResolver.registerContentObserver(
+                android.provider.ContactsContract.Contacts.CONTENT_URI,
+                true,
+                contactsObserver
+            )
+        }
+        onDispose {
+            context.contentResolver.unregisterContentObserver(contactsObserver)
+        }
+    }
+
+    // Reload data when permissions change, after deletion, or when contacts change
+    LaunchedEffect(hasPermission, refreshTrigger, contactsRefreshTrigger) {
         if (hasPermission) {
             try {
                 contacts = ContactsRepository(context).getContacts()

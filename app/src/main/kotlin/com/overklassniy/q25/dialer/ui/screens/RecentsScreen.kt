@@ -120,6 +120,8 @@ fun RecentsScreen(
     var callLog by remember { mutableStateOf<List<GroupedCallLog>?>(null) }
     // Increment this to force reload from ContentObserver
     var callLogRefreshTrigger by remember { mutableIntStateOf(0) }
+    // Increment this to force reload when contacts change (added/removed)
+    var contactsRefreshTrigger by remember { mutableIntStateOf(0) }
 
     // Real-time call log refresh via ContentObserver
     val callLogObserver = remember {
@@ -143,6 +145,31 @@ fun RecentsScreen(
             context.contentResolver.unregisterContentObserver(callLogObserver)
         }
     }
+
+    // Real-time contacts refresh via ContentObserver - triggers both contacts and call log reload
+    val contactsObserver = remember {
+        object : android.database.ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                // Trigger reload of both contacts and call log on next composition
+                contactsRefreshTrigger++
+                callLogRefreshTrigger++
+            }
+        }
+    }
+    DisposableEffect(hasContactsPerm) {
+        if (hasContactsPerm) {
+            context.contentResolver.registerContentObserver(
+                android.provider.ContactsContract.Contacts.CONTENT_URI,
+                true,
+                contactsObserver
+            )
+        }
+        onDispose {
+            context.contentResolver.unregisterContentObserver(contactsObserver)
+        }
+    }
+
     var allContacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
     var blockedNumbers by remember { mutableStateOf<Set<String>>(emptySet()) }
     var blockedNumbersRefreshTrigger by remember { mutableIntStateOf(0) }
@@ -154,8 +181,8 @@ fun RecentsScreen(
         blockedNumbers = loadBlockedNumbers(context)
     }
 
-    // Reload data when permissions change, after deletion, or when call log changes
-    LaunchedEffect(hasCallLogPerm, hasContactsPerm, refreshTrigger, callLogRefreshTrigger) {
+    // Reload data when permissions change, after deletion, or when call log/contacts change
+    LaunchedEffect(hasCallLogPerm, hasContactsPerm, refreshTrigger, callLogRefreshTrigger, contactsRefreshTrigger) {
         if (hasCallLogPerm) {
             try {
                 callLog = CallLogRepository(context).getGroupedCallLog()

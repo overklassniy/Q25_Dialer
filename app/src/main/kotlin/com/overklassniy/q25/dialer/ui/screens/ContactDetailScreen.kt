@@ -37,8 +37,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -84,7 +86,33 @@ fun ContactDetailScreen(
     val historyLimit = prefs.callHistoryLimit
     var displayNumber by remember { mutableStateOf(phoneNumber ?: "") }
 
-    LaunchedEffect(contactId, phoneNumber) {
+    // Trigger to reload data when contacts change
+    var contactsRefreshTrigger by remember { mutableIntStateOf(0) }
+
+    // Real-time contacts refresh via ContentObserver
+    val contactsObserver = remember {
+        object : android.database.ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                // Trigger reload on next composition
+                contactsRefreshTrigger++
+            }
+        }
+    }
+    DisposableEffect(hasContactsPerm) {
+        if (hasContactsPerm) {
+            context.contentResolver.registerContentObserver(
+                android.provider.ContactsContract.Contacts.CONTENT_URI,
+                true,
+                contactsObserver
+            )
+        }
+        onDispose {
+            context.contentResolver.unregisterContentObserver(contactsObserver)
+        }
+    }
+
+    LaunchedEffect(contactId, phoneNumber, contactsRefreshTrigger) {
         if (contactsRepo != null) {
             contact = if (contactId > 0) {
                 contactsRepo.getContactById(contactId)

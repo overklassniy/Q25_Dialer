@@ -10,11 +10,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.provider.ContactsContract
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,7 +35,33 @@ fun FavoritesScreen(searchQuery: String = "") {
     val repository = remember { if (hasPermission) ContactsRepository(context) else null }
     var favorites by remember { mutableStateOf<List<Contact>?>(null) }
 
-    LaunchedEffect(Unit) {
+    // Trigger to reload data when contacts change (added/removed)
+    var contactsRefreshTrigger by remember { mutableIntStateOf(0) }
+
+    // Real-time contacts refresh via ContentObserver
+    val contactsObserver = remember {
+        object : android.database.ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                // Trigger reload on next composition
+                contactsRefreshTrigger++
+            }
+        }
+    }
+    DisposableEffect(hasPermission) {
+        if (hasPermission) {
+            context.contentResolver.registerContentObserver(
+                ContactsContract.Contacts.CONTENT_URI,
+                true,
+                contactsObserver
+            )
+        }
+        onDispose {
+            context.contentResolver.unregisterContentObserver(contactsObserver)
+        }
+    }
+
+    LaunchedEffect(Unit, contactsRefreshTrigger) {
         favorites = try {
             repository?.getFavorites() ?: emptyList()
         } catch (_: Exception) { emptyList() }

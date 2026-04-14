@@ -87,6 +87,7 @@ fun SettingsScreen(
     var themeDialogActivateTrigger by remember { mutableIntStateOf(0) }
     var disableVerticalArrows by remember { mutableStateOf(prefs.disableVerticalArrows) }
     var disableHorizontalArrows by remember { mutableStateOf(prefs.disableHorizontalArrows) }
+    var disableHomeKeyHangup by remember { mutableStateOf(prefs.disableHomeKeyHangup) }
     var sendAnonymousStats by remember { mutableStateOf(prefs.sendAnonymousStats) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
@@ -156,7 +157,7 @@ fun SettingsScreen(
     }
 
     // Compute total items and report to parent for keyboard navigation bounds
-    val totalItems = 15 +
+    val totalItems = 16 +
         (if (isCheckingUpdate || hasUpdate) 1 else 0) +
         (if (BuildConfig.DEBUG) 2 else 0)
     LaunchedEffect(totalItems) { onItemCount(totalItems) }
@@ -299,9 +300,23 @@ fun SettingsScreen(
             activateTrigger = activateTrigger,
             onPositioned = { pos -> itemPositions[idx8] = pos },
         )
-        
+
+        val idx8c = nextIndex()
+        SettingsSwitchItem(
+            title = stringResource(R.string.settings_disable_home_key_hangup),
+            subtitle = stringResource(R.string.settings_disable_home_key_hangup_desc),
+            checked = disableHomeKeyHangup,
+            onCheckedChange = {
+                disableHomeKeyHangup = it
+                prefs.disableHomeKeyHangup = it
+            },
+            isHighlighted = highlightedIndex == idx8c,
+            activateTrigger = activateTrigger,
+            onPositioned = { pos -> itemPositions[idx8c] = pos },
+        )
+
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-        
+
         // Section: Call history
         SettingsSectionHeader(stringResource(R.string.settings_call_history_section))
         

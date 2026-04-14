@@ -140,6 +140,8 @@
     <string name="settings_disable_vertical_arrows_desc">Disable "up" and "down" gestures for list navigation</string>
     <string name="settings_disable_horizontal_arrows">Disable trackpad horizontal gestures</string>
     <string name="settings_disable_horizontal_arrows_desc">Disable "left" and "right" gestures</string>
+    <string name="settings_disable_home_key_hangup">Disable HOME key hangup</string>
+    <string name="settings_disable_home_key_hangup_desc">Ignore HOME button during calls</string>
     <string name="settings_about_section">About</string>
     <string name="settings_version">Version %s</string>
     <string name="settings_update_available">Update available: %s</string>

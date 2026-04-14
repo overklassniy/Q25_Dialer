@@ -10,6 +10,7 @@ import android.os.Build
 import android.telecom.Call
 import androidx.core.app.NotificationCompat
 import com.overklassniy.q25.dialer.R
+import com.overklassniy.q25.dialer.data.repository.ContactsRepository
 
 class CallNotificationManager(private val context: Context) {
 
@@ -22,6 +23,7 @@ class CallNotificationManager(private val context: Context) {
     }
 
     private val notificationManager = context.getSystemService(NotificationManager::class.java)
+    private val contactsRepository by lazy { ContactsRepository(context) }
 
     init {
         createNotificationChannel()
@@ -103,6 +105,16 @@ class CallNotificationManager(private val context: Context) {
 
     private fun getCallerInfo(call: Call): String {
         val handle = call.details?.handle
-        return handle?.schemeSpecificPart ?: context.getString(R.string.unknown_caller)
+        val number = handle?.schemeSpecificPart
+        if (number.isNullOrEmpty()) {
+            return context.getString(R.string.unknown_caller)
+        }
+
+        // Try to find contact by number
+        val contact = try {
+            contactsRepository.getContactByNumber(number)
+        } catch (_: Exception) { null }
+
+        return contact?.name?.takeIf { it.isNotBlank() } ?: number
     }
 }

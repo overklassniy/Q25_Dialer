@@ -70,6 +70,10 @@ class PreferencesManager(context: Context) {
         get() = prefs.getBoolean(KEY_FULLSCREEN_AVATAR, false)
         set(value) = prefs.edit().putBoolean(KEY_FULLSCREEN_AVATAR, value).apply()
 
+    var disableHomeKeyHangup: Boolean
+        get() = prefs.getBoolean(KEY_DISABLE_HOME_KEY_HANGUP, false)
+        set(value) = prefs.edit().putBoolean(KEY_DISABLE_HOME_KEY_HANGUP, value).apply()
+
     fun getCallNote(phoneNumber: String): String {
         return prefs.getString("$KEY_CALL_NOTE_PREFIX$phoneNumber", "") ?: ""
     }
@@ -89,6 +93,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_DISABLE_VERTICAL_ARROWS = "disable_vertical_arrows"
         private const val KEY_DISABLE_HORIZONTAL_ARROWS = "disable_horizontal_arrows"
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_DISABLE_HOME_KEY_HANGUP = "disable_home_key_hangup"
 
         const val KEY_COLOR_PRIMARY = "custom_color_primary"
         const val KEY_COLOR_SECONDARY = "custom_color_secondary"
