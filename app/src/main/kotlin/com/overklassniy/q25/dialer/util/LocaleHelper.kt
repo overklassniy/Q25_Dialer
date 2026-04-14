@@ -2,7 +2,6 @@ package com.overklassniy.q25.dialer.util
 
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import com.overklassniy.q25.dialer.data.PreferencesManager
 import java.util.Locale
 
@@ -13,10 +12,11 @@ object LocaleHelper {
         val lang = prefs.language
         if (lang == PreferencesManager.LANG_SYSTEM) return
 
-        val locale = Locale(lang)
+        val locale = Locale.forLanguageTag(lang)
         Locale.setDefault(locale)
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)
+        @Suppress("DEPRECATION")
         context.resources.updateConfiguration(config, context.resources.displayMetrics)
     }
 
@@ -25,7 +25,7 @@ object LocaleHelper {
         val lang = prefs.language
         if (lang == PreferencesManager.LANG_SYSTEM) return context
 
-        val locale = Locale(lang)
+        val locale = Locale.forLanguageTag(lang)
         Locale.setDefault(locale)
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)

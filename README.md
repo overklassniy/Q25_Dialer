@@ -27,7 +27,7 @@ The app is optimized for the Q25's distinctive **720×720 square display** and *
 - Android Studio Otter or newer
 - JDK 21
 - Android SDK 36
-- Minimum Android version: 8.0 (API 26)
+- Minimum Android version: 12.0 (API 31)
 
 ### Building the Project
 

@@ -2,6 +2,7 @@ package com.overklassniy.q25.dialer.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 class PreferencesManager(context: Context) {
 
@@ -10,56 +11,56 @@ class PreferencesManager(context: Context) {
 
     var hideVirtualDialpad: Boolean
         get() = prefs.getBoolean(KEY_HIDE_VIRTUAL_DIALPAD, true)
-        set(value) = prefs.edit().putBoolean(KEY_HIDE_VIRTUAL_DIALPAD, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_HIDE_VIRTUAL_DIALPAD, value) }
 
     var language: String
         get() = prefs.getString(KEY_LANGUAGE, LANG_SYSTEM) ?: LANG_SYSTEM
-        set(value) = prefs.edit().putString(KEY_LANGUAGE, value).apply()
+        set(value) = prefs.edit { putString(KEY_LANGUAGE, value) }
 
     var onboardingCompleted: Boolean
         get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
-        set(value) = prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETED, value) }
 
     var callHistoryLimit: Int
         get() = prefs.getInt(KEY_CALL_HISTORY_LIMIT, 15)
-        set(value) = prefs.edit().putInt(KEY_CALL_HISTORY_LIMIT, value).apply()
+        set(value) = prefs.edit { putInt(KEY_CALL_HISTORY_LIMIT, value) }
 
     var sendAnonymousStats: Boolean
         get() = prefs.getBoolean(KEY_SEND_ANONYMOUS_STATS, true)
-        set(value) = prefs.edit().putBoolean(KEY_SEND_ANONYMOUS_STATS, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_SEND_ANONYMOUS_STATS, value) }
 
     var expandedBottomNav: Boolean
         get() = prefs.getBoolean(KEY_EXPANDED_BOTTOM_NAV, false)
-        set(value) = prefs.edit().putBoolean(KEY_EXPANDED_BOTTOM_NAV, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_EXPANDED_BOTTOM_NAV, value) }
 
     var disableVerticalArrows: Boolean
         get() = prefs.getBoolean(KEY_DISABLE_VERTICAL_ARROWS, false)
-        set(value) = prefs.edit().putBoolean(KEY_DISABLE_VERTICAL_ARROWS, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_DISABLE_VERTICAL_ARROWS, value) }
 
     var disableHorizontalArrows: Boolean
         get() = prefs.getBoolean(KEY_DISABLE_HORIZONTAL_ARROWS, false)
-        set(value) = prefs.edit().putBoolean(KEY_DISABLE_HORIZONTAL_ARROWS, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_DISABLE_HORIZONTAL_ARROWS, value) }
 
     var themeMode: String
         get() = prefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM
-        set(value) = prefs.edit().putString(KEY_THEME_MODE, value).apply()
+        set(value) = prefs.edit { putString(KEY_THEME_MODE, value) }
 
     fun getCustomColor(key: String): Long? {
         return if (prefs.contains(key)) prefs.getLong(key, 0L) else null
     }
 
     fun setCustomColor(key: String, colorValue: Long) {
-        prefs.edit().putLong(key, colorValue).apply()
+        prefs.edit { putLong(key, colorValue) }
     }
 
     fun removeCustomColor(key: String) {
-        prefs.edit().remove(key).apply()
+        prefs.edit { remove(key) }
     }
 
     fun resetCustomColors() {
-        val editor = prefs.edit()
-        ALL_COLOR_KEYS.forEach { editor.remove(it) }
-        editor.apply()
+        prefs.edit {
+            ALL_COLOR_KEYS.forEach { remove(it) }
+        }
     }
 
     fun hasCustomColors(): Boolean {
@@ -68,18 +69,18 @@ class PreferencesManager(context: Context) {
 
     var fullscreenAvatar: Boolean
         get() = prefs.getBoolean(KEY_FULLSCREEN_AVATAR, false)
-        set(value) = prefs.edit().putBoolean(KEY_FULLSCREEN_AVATAR, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_FULLSCREEN_AVATAR, value) }
 
     var disableHomeKeyHangup: Boolean
         get() = prefs.getBoolean(KEY_DISABLE_HOME_KEY_HANGUP, false)
-        set(value) = prefs.edit().putBoolean(KEY_DISABLE_HOME_KEY_HANGUP, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_DISABLE_HOME_KEY_HANGUP, value) }
 
     fun getCallNote(phoneNumber: String): String {
         return prefs.getString("$KEY_CALL_NOTE_PREFIX$phoneNumber", "") ?: ""
     }
 
     fun setCallNote(phoneNumber: String, note: String) {
-        prefs.edit().putString("$KEY_CALL_NOTE_PREFIX$phoneNumber", note).apply()
+        prefs.edit { putString("$KEY_CALL_NOTE_PREFIX$phoneNumber", note) }
     }
 
     companion object {

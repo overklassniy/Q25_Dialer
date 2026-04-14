@@ -2,37 +2,35 @@
 # Kotlin
 kotlin = "2.3.20"
 # KSP
-ksp = "2.3.3"
+ksp = "2.3.6"
 # AGP
-agp = "9.1.0"
+agp = "9.1.1"
 # Compose
-composeBom = "2026.03.00"
-composeActivity = "1.12.3"
+composeBom = "2026.03.01"
+composeActivity = "1.13.0"
 # Navigation
-navigationCompose = "2.9.0"
+navigationCompose = "2.9.7"
 # Lifecycle
 lifecycle = "2.10.0"
 # Room
 room = "2.8.4"
 # AndroidX
-coreKtx = "1.17.0"
+coreKtx = "1.18.0"
 appcompat = "1.7.1"
-# Material
-material3 = "1.4.0"
 # Coil
 coil = "3.1.0"
 # Libphonenumber
-libphonenumber = "9.0.27"
+libphonenumber = "9.0.28"
 # Sentry
-sentry = "8.12.0"
+sentry = "8.38.0"
 # Kotlinx
-kotlinxSerializationJson = "1.8.1"
+kotlinxSerializationJson = "1.11.0"
 kotlinxCoroutines = "1.10.2"
-kotlinxCollectionsImmutable = "0.3.8"
+kotlinxCollectionsImmutable = "0.4.0"
 # Build
 app-build-compileSDKVersion = "36"
 app-build-targetSDK = "36"
-app-build-minimumSDK = "26"
+app-build-minimumSDK = "31"
 app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 

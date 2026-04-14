@@ -61,6 +61,7 @@ import com.overklassniy.q25.dialer.data.repository.SpeedDialRepository
 import com.overklassniy.q25.dialer.ui.components.ContactAvatar
 import com.overklassniy.q25.dialer.util.PermissionHelper
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 private val SPEED_DIAL_SLOTS = (2..9).toList()
 
@@ -160,7 +161,7 @@ fun SpeedDialSettingsScreen(
                         try {
                             val encoded = Uri.encode(number, "+*")
                             context.startActivity(
-                                Intent(Intent.ACTION_CALL, Uri.parse("tel:$encoded"))
+                                Intent(Intent.ACTION_CALL, "tel:$encoded".toUri())
                             )
                         } catch (_: Exception) {}
                     },
@@ -302,16 +303,14 @@ private fun ContactPickerDialog(
 ) {
     val context = LocalContext.current
     val hasPermission = remember { PermissionHelper.hasContactsPermission(context) }
-    val repository = remember { if (hasPermission) ContactsRepository(context) else null }
     var contacts by remember { mutableStateOf<List<Contact>?>(null) }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         if (hasPermission) {
-            try {
-                contacts = ContactsRepository(context).getContacts()
+            contacts = try {
+                ContactsRepository(context).getContacts()
             } catch (_: Exception) {
-                contacts = emptyList()
+                emptyList()
             }
         }
     }

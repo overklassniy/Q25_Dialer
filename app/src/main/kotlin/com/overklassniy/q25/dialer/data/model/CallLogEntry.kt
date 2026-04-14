@@ -1,6 +1,5 @@
 package com.overklassniy.q25.dialer.data.model
 
-import android.provider.CallLog
 import androidx.compose.runtime.Immutable
 import kotlinx.collections.immutable.ImmutableList
 
@@ -14,13 +13,7 @@ data class CallLogEntry(
     val duration: Long,
     val type: Int,
     val cachedLookupUri: String? = null,
-) {
-    val isIncoming: Boolean get() = type == CallLog.Calls.INCOMING_TYPE
-    val isOutgoing: Boolean get() = type == CallLog.Calls.OUTGOING_TYPE
-    val isMissed: Boolean get() = type == CallLog.Calls.MISSED_TYPE
-    val isRejected: Boolean get() = type == CallLog.Calls.REJECTED_TYPE
-    val isBlocked: Boolean get() = type == CallLog.Calls.BLOCKED_TYPE
-}
+)
 
 @Immutable
 data class GroupedCallLog(

@@ -1,5 +1,6 @@
 package com.overklassniy.q25.dialer
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -8,10 +9,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.BlockedNumberContract
 import android.provider.CallLog
-import android.telecom.TelecomManager
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import java.net.HttpURLConnection
+import java.net.URL
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
@@ -25,43 +27,35 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Dialpad
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -90,7 +84,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.nativeKeyCode
@@ -106,26 +99,21 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-
 import com.overklassniy.q25.dialer.data.PreferencesManager
 import com.overklassniy.q25.dialer.data.db.AppDatabase
 import com.overklassniy.q25.dialer.data.repository.SpeedDialRepository
 import com.overklassniy.q25.dialer.service.QwertyAccessibilityService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import com.overklassniy.q25.dialer.ui.components.DialpadGrid
 import com.overklassniy.q25.dialer.ui.components.SelectionActionBar
+import com.overklassniy.q25.dialer.ui.screens.ColorSettingsScreen
 import com.overklassniy.q25.dialer.ui.screens.ContactDetailScreen
 import com.overklassniy.q25.dialer.ui.screens.ContactsScreen
 import com.overklassniy.q25.dialer.ui.screens.OnboardingScreen
 import com.overklassniy.q25.dialer.ui.screens.RecentsScreen
-import com.overklassniy.q25.dialer.ui.screens.ColorSettingsScreen
 import com.overklassniy.q25.dialer.ui.screens.SettingsScreen
 import com.overklassniy.q25.dialer.ui.screens.SpeedDialSettingsScreen
 import com.overklassniy.q25.dialer.ui.theme.ActivatedItemForeground
@@ -133,6 +121,11 @@ import com.overklassniy.q25.dialer.ui.theme.CallGreen
 import com.overklassniy.q25.dialer.ui.theme.Q25DialerTheme
 import com.overklassniy.q25.dialer.util.LocaleHelper
 import com.overklassniy.q25.dialer.util.PermissionHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 // Maps a native Android keyCode to its dialpad character (QWERTY mapping)
 private fun keyCodeToDialpad(keyCode: Int): Char? {
@@ -166,70 +159,16 @@ private fun keyCodeToDialpad(keyCode: Int): Char? {
     }
 }
 
-// Maps a native Android keyCode to its literal character for normal text input
-private fun keyCodeToChar(keyCode: Int): Char? {
-    return when (keyCode) {
-        KeyEvent.KEYCODE_A -> 'a'; KeyEvent.KEYCODE_B -> 'b'
-        KeyEvent.KEYCODE_C -> 'c'; KeyEvent.KEYCODE_D -> 'd'
-        KeyEvent.KEYCODE_E -> 'e'; KeyEvent.KEYCODE_F -> 'f'
-        KeyEvent.KEYCODE_G -> 'g'; KeyEvent.KEYCODE_H -> 'h'
-        KeyEvent.KEYCODE_I -> 'i'; KeyEvent.KEYCODE_J -> 'j'
-        KeyEvent.KEYCODE_K -> 'k'; KeyEvent.KEYCODE_L -> 'l'
-        KeyEvent.KEYCODE_M -> 'm'; KeyEvent.KEYCODE_N -> 'n'
-        KeyEvent.KEYCODE_O -> 'o'; KeyEvent.KEYCODE_P -> 'p'
-        KeyEvent.KEYCODE_Q -> 'q'; KeyEvent.KEYCODE_R -> 'r'
-        KeyEvent.KEYCODE_S -> 's'; KeyEvent.KEYCODE_T -> 't'
-        KeyEvent.KEYCODE_U -> 'u'; KeyEvent.KEYCODE_V -> 'v'
-        KeyEvent.KEYCODE_W -> 'w'; KeyEvent.KEYCODE_X -> 'x'
-        KeyEvent.KEYCODE_Y -> 'y'; KeyEvent.KEYCODE_Z -> 'z'
-        KeyEvent.KEYCODE_0 -> '0'; KeyEvent.KEYCODE_1 -> '1'
-        KeyEvent.KEYCODE_2 -> '2'; KeyEvent.KEYCODE_3 -> '3'
-        KeyEvent.KEYCODE_4 -> '4'; KeyEvent.KEYCODE_5 -> '5'
-        KeyEvent.KEYCODE_6 -> '6'; KeyEvent.KEYCODE_7 -> '7'
-        KeyEvent.KEYCODE_8 -> '8'; KeyEvent.KEYCODE_9 -> '9'
-        KeyEvent.KEYCODE_SPACE -> ' '
-        KeyEvent.KEYCODE_MINUS -> '-'
-        KeyEvent.KEYCODE_PERIOD -> '.'
-        KeyEvent.KEYCODE_AT -> '@'
-        else -> null
-    }
-}
-
-// Maps a QWERTY character to a dialpad character
-private fun qwertyCharToDialpad(c: Char): Char? {
-    return when (c.lowercaseChar()) {
-        'q' -> '#'
-        'a' -> '*'
-        'w' -> '1'
-        'e' -> '2'
-        'r' -> '3'
-        's' -> '4'
-        'd' -> '5'
-        'f' -> '6'
-        'z' -> '7'
-        'x' -> '8'
-        'c' -> '9'
-        'o' -> '+'
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> c
-        '*', '#', '+' -> c
-        else -> null
-    }
-}
-
-// Transforms a full string through QWERTY -> dialpad mapping, filtering invalid chars
-private fun transformToDialpad(input: String): String {
-    return input.mapNotNull { qwertyCharToDialpad(it) }.joinToString("")
-}
-
 // Look up a speed dial slot and initiate a call if assigned
 private fun speedDialCall(slot: Int, context: Context) {
+    @Suppress("OPT_IN_USAGE")
     GlobalScope.launch(Dispatchers.Main) {
         val repo = SpeedDialRepository(AppDatabase.getInstance(context))
         val entry = repo.getBySlot(slot)
         if (entry != null) {
             try {
                 val encoded = Uri.encode(entry.number, "+*")
-                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$encoded")))
+                context.startActivity(Intent(Intent.ACTION_CALL, "tel:$encoded".toUri()))
             } catch (_: Exception) { }
         } else {
             Toast.makeText(context, context.getString(R.string.speed_dial_no_assignment, slot.toString()), Toast.LENGTH_SHORT).show()
@@ -270,9 +209,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // Disable autofill suggestions across the whole activity
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            window.decorView.importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
-        }
+        window.decorView.importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
 
         PermissionHelper.launchMissing(this, permissionLauncher)
 
@@ -335,10 +272,12 @@ class MainActivity : ComponentActivity() {
         makeCallRequested = false
     }
 
-    override fun attachBaseContext(newBase: android.content.Context) {
+    override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.wrap(newBase))
     }
 
+    @SuppressLint("GestureBackNavigation")
+    @Suppress("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // Handle BACK key before Compose (focus system consumes BACK to clear focus)
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
@@ -378,15 +317,14 @@ class MainActivity : ComponentActivity() {
                         // First press: schedule long-press detection
                         longPressKeyCode = keyCode
                         longPressConsumed = false
-                        val char = dialChar
                         val ctx = this
                         longPressRunnable = Runnable {
                             longPressConsumed = true
-                            if (char == '0') {
+                            if (dialChar == '0') {
                                 onAccessibilityBackspace?.invoke()
                                 onAccessibilityDialpadChar?.invoke('+')
                             } else {
-                                val slot = char.digitToIntOrNull()
+                                val slot = dialChar.digitToIntOrNull()
                                 if (slot != null && slot in 2..9) {
                                     onAccessibilityBackspace?.invoke()
                                     speedDialCall(slot, ctx)
@@ -427,11 +365,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             // Consume horizontal arrows when disabled
-            if (!prefs.disableHorizontalArrows) {
-                if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    // Let system handle
-                }
-            } else {
+            if (prefs.disableHorizontalArrows) {
                 if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                     return true // consume, do nothing
                 }
@@ -486,8 +420,6 @@ object NavRoutes {
     const val CONTACT_DETAIL = "contact_detail/{contactId}/{phoneNumber}"
     const val COLOR_SETTINGS = "color_settings"
     const val SPEED_DIAL_SETTINGS = "speed_dial_settings"
-    const val ONBOARDING = "onboarding"
-
     fun contactDetail(contactId: Long = -1, phoneNumber: String = "") =
         "contact_detail/$contactId/$phoneNumber"
 }
@@ -563,10 +495,10 @@ fun MainScreen(
     // GitHub update check
     var hasUpdate by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        val latest = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val latest = withContext(Dispatchers.IO) {
             try {
-                val url = java.net.URL("https://api.github.com/repos/overklassniy/Q25_Dialer/releases/latest")
-                val conn = url.openConnection() as java.net.HttpURLConnection
+                val url = URL("https://api.github.com/repos/overklassniy/Q25_Dialer/releases/latest")
+                val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "GET"
                 conn.setRequestProperty("Accept", "application/vnd.github.v3+json")
                 conn.connectTimeout = 5000
@@ -605,7 +537,7 @@ fun MainScreen(
 
     // Derive current route from tab selection + overlay state
     val currentRoute = when {
-        isOnOverlayScreen -> navRoute!!
+        isOnOverlayScreen -> navRoute
         selectedTab == 0 -> NavRoutes.RECENTS
         else -> NavRoutes.CONTACTS
     }
@@ -700,8 +632,9 @@ fun MainScreen(
                     } else if (recentsQuery.isNotEmpty()) {
                         // No item highlighted but number is typed – place call
                         try {
-                            val encoded = android.net.Uri.encode(recentsQuery, "+*")
-                            activity?.startActivity(android.content.Intent(android.content.Intent.ACTION_CALL, android.net.Uri.parse("tel:$encoded")))
+                            val encoded = Uri.encode(recentsQuery, "+*")
+                            activity?.startActivity(Intent(Intent.ACTION_CALL,
+                                "tel:$encoded".toUri()))
                         } catch (_: Exception) { }
                     }
                 }
@@ -769,11 +702,11 @@ fun MainScreen(
         if (makeCallRequested && recentsQuery.isNotEmpty()) {
             try {
                 val encoded = Uri.encode(recentsQuery, "+*")
-                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$encoded")))
+                context.startActivity(Intent(Intent.ACTION_CALL, "tel:$encoded".toUri()))
             } catch (_: Exception) { }
-            activity?.consumeMakeCall()
+            activity.consumeMakeCall()
         } else if (makeCallRequested) {
-            activity?.consumeMakeCall()
+            activity.consumeMakeCall()
         }
     }
 
@@ -788,7 +721,7 @@ fun MainScreen(
         if (recentsQuery.isNotEmpty()) {
             try {
                 val encoded = Uri.encode(recentsQuery, "+*")
-                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$encoded")))
+                context.startActivity(Intent(Intent.ACTION_CALL, "tel:$encoded".toUri()))
             } catch (_: Exception) { }
         }
     }
@@ -847,7 +780,7 @@ fun MainScreen(
                             onSelectAll = {
                                 if (isCallSelectionMode) {
                                     selectedCallKeys = if (selectedCallKeys == allCallKeys) emptySet() else allCallKeys
-                                } else if (isContactSelectionMode) {
+                                } else {
                                     selectedContactIds = if (selectedContactIds == allContactIds) emptySet() else allContactIds
                                 }
                             },
@@ -855,7 +788,8 @@ fun MainScreen(
                                 {
                                     val number = selectedCallKeys.first().substringBefore("_")
                                     try {
-                                        context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$number")))
+                                        context.startActivity(Intent(Intent.ACTION_SENDTO,
+                                            "smsto:$number".toUri()))
                                     } catch (_: Exception) { }
                                     selectedCallKeys = emptySet()
                                 }
@@ -877,9 +811,9 @@ fun MainScreen(
                                 }
                             } else null,
                             isBlocked = isSelectedNumberBlocked,
-                            onDelete = if (isCallSelectionMode || isContactSelectionMode) {
+                            onDelete = run {
                                 { showDeleteConfirmation = true }
-                            } else null,
+                            },
                         )
                     } else {
                         // Normal search bar
@@ -893,7 +827,6 @@ fun MainScreen(
                                 }
                             },
                             readOnly = currentRoute == NavRoutes.RECENTS,
-                            isActive = isSearchActive,
                             onActiveChange = { active ->
                                 isSearchActive = active
                                 if (active && currentRoute == NavRoutes.RECENTS && !hideVirtualDialpad.value) {
@@ -995,7 +928,9 @@ fun MainScreen(
                     onInfoClick = { group ->
                         navController.navigate(NavRoutes.contactDetail(phoneNumber = group.number))
                     },
-                    onAllSelectableKeys = { allCallKeys = it },
+                    onAllSelectableKeys = {
+                        allCallKeys = it
+                    },
                 )
             }
 
@@ -1019,7 +954,9 @@ fun MainScreen(
                     onContactClick = { contactId ->
                         navController.navigate(NavRoutes.contactDetail(contactId = contactId))
                     },
-                    onAllSelectableIds = { allContactIds = it },
+                    onAllSelectableIds = {
+                        allContactIds = it
+                    },
                 )
             }
 
@@ -1044,12 +981,7 @@ fun MainScreen(
                         highlightedIndex = highlightedSettingsIndex,
                         activateTrigger = settingsActivateTrigger,
                         onItemCount = { settingsItemCount = it },
-                        onNavigateBack = {
-                            navController.popBackStack()
-                            onColorsChanged()
-                        },
                         onThemeModeChanged = onThemeModeChanged,
-                        onColorsChanged = onColorsChanged,
                         onNavigateToColorSettings = {
                             navController.navigate(NavRoutes.COLOR_SETTINGS)
                         },
@@ -1060,7 +992,6 @@ fun MainScreen(
                 }
                 composable(NavRoutes.COLOR_SETTINGS) {
                     ColorSettingsScreen(
-                        onNavigateBack = { navController.popBackStack() },
                         onColorsChanged = onColorsChanged,
                         highlightedIndex = highlightedColorSettingsIndex,
                         activateTrigger = colorSettingsActivateTrigger,
@@ -1137,7 +1068,9 @@ fun MainScreen(
     // Delete confirmation dialog
     if (showDeleteConfirmation) {
         AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
+            onDismissRequest = {
+                showDeleteConfirmation = false
+            },
             title = { Text(stringResource(R.string.delete_confirmation_title)) },
             text = {
                 Text(stringResource(
@@ -1179,7 +1112,9 @@ fun MainScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirmation = false }) {
+                TextButton(onClick = {
+                    showDeleteConfirmation = false
+                }) {
                     Text(stringResource(android.R.string.cancel))
                 }
             },
@@ -1189,7 +1124,9 @@ fun MainScreen(
     // Block/unblock confirmation dialog
     if (showBlockConfirmation) {
         AlertDialog(
-            onDismissRequest = { showBlockConfirmation = false },
+            onDismissRequest = {
+                showBlockConfirmation = false
+            },
             title = { Text(stringResource(
                 if (blockTargetIsBlocked) R.string.unblock_number else R.string.block_number
             )) },
@@ -1228,7 +1165,9 @@ fun MainScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showBlockConfirmation = false }) {
+                TextButton(onClick = {
+                    showBlockConfirmation = false
+                }) {
                     Text(stringResource(android.R.string.cancel))
                 }
             },
@@ -1273,7 +1212,7 @@ fun BottomNavigation(
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
     expanded: Boolean = false,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
 ) {
     // Background color from bottom_tabs_dark_background
     Box(
@@ -1308,7 +1247,7 @@ private fun BottomNavItemInternal(
     isSelected: Boolean,
     onClick: () -> Unit,
     showLabel: Boolean = false,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val tint = if (isSelected) {
@@ -1368,7 +1307,6 @@ private fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     readOnly: Boolean = false,
-    isActive: Boolean,
     onActiveChange: (Boolean) -> Unit,
     placeholder: String,
     onSettingsClick: () -> Unit,
@@ -1376,7 +1314,7 @@ private fun SearchBar(
     leadingIcon: ImageVector = Icons.Filled.Search,
     searchFieldFocusRequester: FocusRequester? = null,
     onSearchFieldFocused: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
 ) {
     // Use TextFieldValue internally so cursor moves to end on external changes
     var textFieldValue by remember { mutableStateOf(TextFieldValue(query, TextRange(query.length))) }

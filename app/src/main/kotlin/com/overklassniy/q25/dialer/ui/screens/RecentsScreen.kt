@@ -1,14 +1,10 @@
 package com.overklassniy.q25.dialer.ui.screens
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.CallLog
 import android.text.format.DateUtils
-import android.widget.Toast
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.rememberSplineBasedDecay
@@ -22,14 +18,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -38,9 +31,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CallMade
+import androidx.compose.material.icons.automirrored.filled.CallMissed
 import androidx.compose.material.icons.automirrored.filled.CallReceived
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.automirrored.filled.CallMissed
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PhoneDisabled
 import androidx.compose.material3.CircularProgressIndicator
@@ -67,7 +60,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.overklassniy.q25.dialer.R
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import com.overklassniy.q25.dialer.data.model.Contact
 import com.overklassniy.q25.dialer.data.model.GroupedCallLog
 import com.overklassniy.q25.dialer.data.repository.CallLogRepository
@@ -114,9 +111,6 @@ fun RecentsScreen(
         }
     }
 
-    val callLogRepository = remember { if (hasCallLogPerm) CallLogRepository(context) else null }
-    val contactsRepository = remember { if (hasContactsPerm) ContactsRepository(context) else null }
-
     var callLog by remember { mutableStateOf<List<GroupedCallLog>?>(null) }
     // Increment this to force reload from ContentObserver
     var callLogRefreshTrigger by remember { mutableIntStateOf(0) }
@@ -136,7 +130,7 @@ fun RecentsScreen(
     DisposableEffect(hasCallLogPerm) {
         if (hasCallLogPerm) {
             context.contentResolver.registerContentObserver(
-                android.provider.CallLog.Calls.CONTENT_URI,
+                CallLog.Calls.CONTENT_URI,
                 true,
                 callLogObserver
             )
@@ -172,7 +166,6 @@ fun RecentsScreen(
 
     var allContacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
     var blockedNumbers by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var blockedNumbersRefreshTrigger by remember { mutableIntStateOf(0) }
     var selectedFilter by remember { mutableIntStateOf(0) } // 0=All, 1=Missed, 2=Incoming, 3=Outgoing, 4=Rejected
     val isSelectionMode = selectedCallKeys.isNotEmpty()
 
@@ -184,17 +177,17 @@ fun RecentsScreen(
     // Reload data when permissions change, after deletion, or when call log/contacts change
     LaunchedEffect(hasCallLogPerm, hasContactsPerm, refreshTrigger, callLogRefreshTrigger, contactsRefreshTrigger) {
         if (hasCallLogPerm) {
-            try {
-                callLog = CallLogRepository(context).getGroupedCallLog()
+            callLog = try {
+                CallLogRepository(context).getGroupedCallLog()
             } catch (_: Exception) {
-                callLog = emptyList()
+                emptyList()
             }
         }
         if (hasContactsPerm) {
-            try {
-                allContacts = ContactsRepository(context).getContacts()
+            allContacts = try {
+                ContactsRepository(context).getContacts()
             } catch (_: Exception) {
-                allContacts = emptyList()
+                emptyList()
             }
         }
     }
@@ -277,7 +270,7 @@ fun RecentsScreen(
                     onClick = {
                         val number = contact.getPrimaryNumber() ?: return@ContactItem
                         try {
-                            context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$number")))
+                            context.startActivity(Intent(Intent.ACTION_CALL, "tel:$number".toUri()))
                         } catch (_: Exception) { }
                     },
                 )
@@ -320,7 +313,8 @@ fun RecentsScreen(
                         if (index in filteredCallLog.indices) {
                             val group = filteredCallLog[index]
                             try {
-                                context.startActivity(android.content.Intent(android.content.Intent.ACTION_CALL, android.net.Uri.parse("tel:${group.number}")))
+                                context.startActivity(Intent(Intent.ACTION_CALL,
+                                    "tel:${group.number}".toUri()))
                             } catch (_: Exception) { }
                         }
                     }
@@ -379,7 +373,6 @@ fun RecentsScreen(
                         CallLogItem(
                             group = group.copy(photoUri = resolvedPhotoUri),
                             isSelected = isSelected,
-                            isSelectionMode = isSelectionMode,
                             isHighlighted = isHighlighted,
                             isBlocked = isBlocked,
                             onCall = {
@@ -389,7 +382,8 @@ fun RecentsScreen(
                                     onSelectionChanged(newSet)
                                 } else {
                                     try {
-                                        context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:${group.number}")))
+                                        context.startActivity(Intent(Intent.ACTION_CALL,
+                                            "tel:${group.number}".toUri()))
                                     } catch (_: Exception) { }
                                 }
                             },
@@ -459,7 +453,6 @@ private fun RecentsFilterBar(
 private fun CallLogItem(
     group: GroupedCallLog,
     isSelected: Boolean = false,
-    isSelectionMode: Boolean = false,
     isHighlighted: Boolean = false,
     isBlocked: Boolean = false,
     onCall: () -> Unit,
@@ -631,8 +624,8 @@ private fun CallLogItem(
                     }
 
                     // Time at right (HH:MM format)
-                    val timeFormat = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-                    val timeText = timeFormat.format(java.util.Date(group.latestDate))
+                    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    val timeText = timeFormat.format(Date(group.latestDate))
 
                     Text(
                         text = timeText,
@@ -676,9 +669,9 @@ private fun formatDuration(seconds: Long): String {
     val minutes = (seconds % 3600) / 60
     val secs = seconds % 60
     return if (hours > 0) {
-        String.format("%02d:%02d:%02d", hours, minutes, secs)
+        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, secs)
     } else {
-        String.format("%02d:%02d", minutes, secs)
+        String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
     }
 }
 

@@ -1,5 +1,6 @@
 package com.overklassniy.q25.dialer.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -52,7 +53,7 @@ fun DialpadGrid(
     onCallPress: () -> Unit = {},
     onBackspacePress: () -> Unit = {},
     onBackspaceLongPress: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         // Top divider
@@ -162,7 +163,7 @@ private fun DialpadButton(
     key: DialpadKey,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier

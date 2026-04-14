@@ -8,7 +8,6 @@ import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,9 +22,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.CallMade
+import androidx.compose.material.icons.automirrored.filled.CallMissed
 import androidx.compose.material.icons.automirrored.filled.CallReceived
 import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.filled.CallMissed
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
@@ -52,11 +51,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.overklassniy.q25.dialer.R
 import com.overklassniy.q25.dialer.data.PreferencesManager
-import com.overklassniy.q25.dialer.data.model.Contact
 import com.overklassniy.q25.dialer.data.model.CallLogEntry
-import com.overklassniy.q25.dialer.data.model.GroupedCallLog
+import com.overklassniy.q25.dialer.data.model.Contact
 import com.overklassniy.q25.dialer.data.repository.CallLogRepository
 import com.overklassniy.q25.dialer.data.repository.ContactsRepository
 import com.overklassniy.q25.dialer.ui.components.ContactAvatar
@@ -102,7 +101,7 @@ fun ContactDetailScreen(
     DisposableEffect(hasContactsPerm) {
         if (hasContactsPerm) {
             context.contentResolver.registerContentObserver(
-                android.provider.ContactsContract.Contacts.CONTENT_URI,
+                ContactsContract.Contacts.CONTENT_URI,
                 true,
                 contactsObserver
             )
@@ -250,7 +249,8 @@ fun ContactDetailScreen(
                     .clickable {
                         if (displayNumber.isNotEmpty()) {
                             try {
-                                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$displayNumber")))
+                                context.startActivity(Intent(Intent.ACTION_CALL,
+                                    "tel:$displayNumber".toUri()))
                             } catch (_: Exception) { }
                         }
                     }
@@ -278,7 +278,8 @@ fun ContactDetailScreen(
                     .clickable {
                         if (displayNumber.isNotEmpty()) {
                             try {
-                                context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$displayNumber")))
+                                context.startActivity(Intent(Intent.ACTION_SENDTO,
+                                    "smsto:$displayNumber".toUri()))
                             } catch (_: Exception) { }
                         }
                     }
@@ -357,7 +358,8 @@ fun ContactDetailScreen(
                         .fillMaxWidth()
                         .clickable {
                             try {
-                                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:${phone.number}")))
+                                context.startActivity(Intent(Intent.ACTION_CALL,
+                                    "tel:${phone.number}".toUri()))
                             } catch (_: Exception) { }
                         }
                         .padding(horizontal = 16.dp, vertical = 10.dp),
@@ -426,7 +428,7 @@ private fun CallHistoryRow(
     val callTypeIcon = when (type) {
         CallLog.Calls.INCOMING_TYPE -> Icons.AutoMirrored.Filled.CallReceived
         CallLog.Calls.OUTGOING_TYPE -> Icons.AutoMirrored.Filled.CallMade
-        else -> Icons.Filled.CallMissed
+        else -> Icons.AutoMirrored.Filled.CallMissed
     }
     val iconColor = when (type) {
         CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> MissedCallRed
@@ -485,6 +487,6 @@ private fun formatDurationDetail(seconds: Long): String {
     val h = seconds / 3600
     val m = (seconds % 3600) / 60
     val s = seconds % 60
-    return if (h > 0) String.format("%d:%02d:%02d", h, m, s)
-    else String.format("%d:%02d", m, s)
+    return if (h > 0) String.format(Locale.getDefault(), "%d:%02d:%02d", h, m, s)
+    else String.format(Locale.getDefault(), "%d:%02d", m, s)
 }

@@ -1,6 +1,5 @@
 package com.overklassniy.q25.dialer.service
 
-import android.content.Intent
 import android.os.PowerManager
 import android.telecom.Call
 import android.telecom.CallAudioState
@@ -31,7 +30,7 @@ class DialerCallService : InCallService() {
         CallManager.inCallService = this
         call.registerCallback(callListener)
 
-        val isOutgoing = call.state == Call.STATE_CONNECTING || call.state == Call.STATE_DIALING
+        val isOutgoing = call.details.state == Call.STATE_CONNECTING || call.details.state == Call.STATE_DIALING
         val isDeviceLocked = !(getSystemService(PowerManager::class.java)?.isInteractive ?: true)
         val lowPriority = !isDeviceLocked && isOutgoing
 
@@ -55,6 +54,8 @@ class DialerCallService : InCallService() {
         }
     }
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
     override fun onCallAudioStateChanged(audioState: CallAudioState?) {
         super.onCallAudioStateChanged(audioState)
         if (audioState != null) {

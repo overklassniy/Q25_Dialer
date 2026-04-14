@@ -1,12 +1,11 @@
 package com.overklassniy.q25.dialer.call
 
-import android.app.Notification
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.telecom.Call
 import androidx.core.app.NotificationCompat
 import com.overklassniy.q25.dialer.R
@@ -41,6 +40,7 @@ class CallNotificationManager(private val context: Context) {
         notificationManager.createNotificationChannel(channel)
     }
 
+    @SuppressLint("FullScreenIntentPolicy")
     fun setupNotification(lowPriority: Boolean = false) {
         val call = CallManager.getPrimaryCall() ?: return
         val callerInfo = getCallerInfo(call)
@@ -53,7 +53,7 @@ class CallNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val isIncoming = call.state == Call.STATE_RINGING
+        val isIncoming = call.details.state == Call.STATE_RINGING
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_call_notification)

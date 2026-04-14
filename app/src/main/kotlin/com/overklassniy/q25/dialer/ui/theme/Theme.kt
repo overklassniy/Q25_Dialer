@@ -66,7 +66,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun Q25DialerTheme(
     darkTheme: Boolean = true,
-    dynamicColor: Boolean = false,
     colorRefreshKey: Int = 0,
     content: @Composable () -> Unit
 ) {

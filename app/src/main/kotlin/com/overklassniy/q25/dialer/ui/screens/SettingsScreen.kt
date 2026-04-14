@@ -2,11 +2,9 @@ package com.overklassniy.q25.dialer.ui.screens
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,22 +32,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.overklassniy.q25.dialer.App
 import com.overklassniy.q25.dialer.BuildConfig
 import com.overklassniy.q25.dialer.MainActivity
@@ -56,8 +54,6 @@ import com.overklassniy.q25.dialer.R
 import com.overklassniy.q25.dialer.data.PreferencesManager
 import io.sentry.Sentry
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -65,9 +61,7 @@ fun SettingsScreen(
     highlightedIndex: Int = -1,
     activateTrigger: Int = 0,
     onItemCount: (Int) -> Unit = {},
-    onNavigateBack: () -> Unit = {},
     onThemeModeChanged: (String) -> Unit = {},
-    onColorsChanged: () -> Unit = {},
     onNavigateToColorSettings: () -> Unit = {},
     onNavigateToSpeedDialSettings: () -> Unit = {},
 ) {
@@ -93,7 +87,7 @@ fun SettingsScreen(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
-    var callHistoryLimit by remember { mutableStateOf(prefs.callHistoryLimit) }
+    var callHistoryLimit by remember { mutableIntStateOf(prefs.callHistoryLimit) }
     var showChangelogDialog by remember { mutableStateOf(false) }
 
     // GitHub version check
@@ -112,7 +106,9 @@ fun SettingsScreen(
 
     if (showOnboarding) {
         OnboardingScreen(
-            onComplete = { showOnboarding = false },
+            onComplete = {
+                showOnboarding = false
+            },
         )
         return
     }
@@ -160,7 +156,7 @@ fun SettingsScreen(
     // Compute total items and report to parent for keyboard navigation bounds
     val totalItems = 17 +
         (if (isCheckingUpdate || hasUpdate) 1 else 0) +
-        (if (BuildConfig.DEBUG) 2 else 0)
+        (@Suppress("SENSELESS_COMPARISON") if (BuildConfig.DEBUG) 2 else 0)
     LaunchedEffect(totalItems) { onItemCount(totalItems) }
 
     // Track positions of items for scroll
@@ -209,7 +205,9 @@ fun SettingsScreen(
         SettingsClickItem(
             title = stringResource(R.string.onboarding_setup),
             subtitle = stringResource(R.string.onboarding_default_dialer_desc),
-            onClick = { showOnboarding = true },
+            onClick = {
+                showOnboarding = true
+            },
             isHighlighted = highlightedIndex == idx2,
             activateTrigger = activateTrigger,
             onPositioned = { pos -> itemPositions[idx2] = pos },
@@ -409,7 +407,7 @@ fun SettingsScreen(
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://github.com/overklassniy/Q25_Dialer/releases/latest"),
+                        "https://github.com/overklassniy/Q25_Dialer/releases/latest".toUri(),
                     )
                     context.startActivity(intent)
                 },
@@ -436,7 +434,7 @@ fun SettingsScreen(
             onClick = {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://github.com/overklassniy/Q25_Dialer"),
+                    "https://github.com/overklassniy/Q25_Dialer".toUri(),
                 )
                 context.startActivity(intent)
             },
@@ -452,7 +450,7 @@ fun SettingsScreen(
             onClick = {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://www.donationalerts.com/r/overklassniy"),
+                    "https://www.donationalerts.com/r/overklassniy".toUri(),
                 )
                 context.startActivity(intent)
             },
@@ -462,11 +460,12 @@ fun SettingsScreen(
         )
         
         // Section: Debug (only in debug builds)
+        @Suppress("SENSELESS_COMPARISON")
         if (BuildConfig.DEBUG) {
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            
+
             SettingsSectionHeader(stringResource(R.string.settings_debug_section))
-            
+
             val idx17 = nextIndex()
             SettingsClickItem(
                 title = stringResource(R.string.settings_debug_test_sentry),
@@ -483,7 +482,7 @@ fun SettingsScreen(
                 activateTrigger = activateTrigger,
                 onPositioned = { pos -> itemPositions[idx17] = pos },
             )
-            
+
             val idx18 = nextIndex()
             SettingsClickItem(
                 title = stringResource(R.string.settings_debug_test_crash),
@@ -501,7 +500,9 @@ fun SettingsScreen(
     if (showLanguageDialog) {
         LanguagePickerDialog(
             currentLanguage = prefs.language,
-            onDismiss = { showLanguageDialog = false },
+            onDismiss = {
+                showLanguageDialog = false
+            },
             onSelect = { lang ->
                 prefs.language = lang
                 showLanguageDialog = false
@@ -516,7 +517,9 @@ fun SettingsScreen(
     if (showHistoryLimitDialog) {
         CallHistoryLimitDialog(
             currentLimit = callHistoryLimit,
-            onDismiss = { showHistoryLimitDialog = false },
+            onDismiss = {
+                showHistoryLimitDialog = false
+            },
             onSelect = { limit ->
                 prefs.callHistoryLimit = limit
                 callHistoryLimit = limit
@@ -537,7 +540,9 @@ fun SettingsScreen(
         }
         ThemePickerDialog(
             currentMode = themeMode,
-            onDismiss = { showThemeDialog = false },
+            onDismiss = {
+                showThemeDialog = false
+            },
             onSelect = { mode ->
                 prefs.themeMode = mode
                 themeMode = mode
@@ -550,7 +555,9 @@ fun SettingsScreen(
     }
 
     if (showChangelogDialog) {
-        ChangelogDialog(onDismiss = { showChangelogDialog = false })
+        ChangelogDialog(onDismiss = {
+            showChangelogDialog = false
+        })
     }
 }
 

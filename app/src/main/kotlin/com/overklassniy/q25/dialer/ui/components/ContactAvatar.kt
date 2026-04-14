@@ -1,5 +1,6 @@
 package com.overklassniy.q25.dialer.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -32,7 +33,7 @@ fun ContactAvatar(
     name: String,
     photoUri: String?,
     size: Dp = 40.dp,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     isUnknown: Boolean = false,
 ) {
     val initials = remember(name, isUnknown) {
@@ -63,7 +64,7 @@ fun ContactAvatar(
         if (photoUri != null) {
             val context = LocalContext.current
 
-            // Initialise state from the process-level singleton cache.
+            // Initialize state from the process-level singleton cache.
             // On first visit the cache is empty -> null; on tab switch it is populated -> instant.
             var bitmap by remember(photoUri) {
                 mutableStateOf(AvatarCache.get(photoUri))

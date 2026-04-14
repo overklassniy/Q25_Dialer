@@ -4,8 +4,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,7 +11,6 @@ import android.os.PowerManager
 import android.telecom.Call
 import android.telecom.CallAudioState
 import android.view.KeyEvent
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -22,10 +19,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import com.overklassniy.q25.dialer.data.PreferencesManager
 import com.overklassniy.q25.dialer.data.repository.ContactsRepository
 import com.overklassniy.q25.dialer.ui.screens.InCallScreen
 import com.overklassniy.q25.dialer.ui.theme.Q25DialerTheme
+import java.util.Locale
 
 class CallActivity : ComponentActivity() {
 
@@ -135,7 +134,7 @@ class CallActivity : ComponentActivity() {
                     else -> systemDark
                 }
             }
-            Q25DialerTheme(darkTheme = isDarkTheme, dynamicColor = false) {
+            Q25DialerTheme(darkTheme = isDarkTheme) {
                 InCallScreen(
                     isDarkTheme = isDarkTheme,
                     callerName = callerName,
@@ -178,7 +177,6 @@ class CallActivity : ComponentActivity() {
                     hasHeldCall = hasHeldCall,
                     heldCallerName = heldCallerName,
                     onSwapCall = { CallManager.swap() },
-                    onMergeCall = { CallManager.merge() },
                     onToggleHold = {
                         if (isOnHold) CallManager.unhold() else CallManager.hold()
                         isOnHold = !isOnHold
@@ -191,7 +189,7 @@ class CallActivity : ComponentActivity() {
                         CallManager.reject()
                         if (number.isNotEmpty()) {
                             try {
-                                val smsIntent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$number"))
+                                val smsIntent = Intent(Intent.ACTION_SENDTO, "smsto:$number".toUri())
                                 smsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                 startActivity(smsIntent)
                             } catch (_: Exception) { }
@@ -280,7 +278,7 @@ class CallActivity : ComponentActivity() {
                 proximityWakeLock = pm.newWakeLock(
                     PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK,
                     "Q25Dialer:ProximityWakeLock"
-                ).apply { acquire() }
+                ).apply { acquire(60 * 60 * 1000L) } // 1 hour timeout as safety fallback
             }
         } catch (_: Exception) { }
     }
@@ -323,8 +321,7 @@ class CallActivity : ComponentActivity() {
     }
 
     private fun updateCallState() {
-        val state = CallManager.getPhoneState()
-        when (state) {
+        when (val state = CallManager.getPhoneState()) {
             is NoCall -> {
                 durationHandler.removeCallbacks(durationRunnable)
                 callStatusText = getString(com.overklassniy.q25.dialer.R.string.call_ended)
@@ -334,7 +331,7 @@ class CallActivity : ComponentActivity() {
                 hasHeldCall = false
                 heldCallerName = null
                 updateCallInfo(state.call)
-                val callState = state.call.state
+                val callState = state.call.details.state
                 isIncoming = callState == Call.STATE_RINGING
                 isOnHold = callState == Call.STATE_HOLDING
 
@@ -372,7 +369,7 @@ class CallActivity : ComponentActivity() {
                     getString(com.overklassniy.q25.dialer.R.string.unknown_caller)
                 }
 
-                val activeState = activeCall.state
+                val activeState = activeCall.details.state
                 callStatusText = when (activeState) {
                     Call.STATE_ACTIVE -> {
                         if (!isCallActive) {
@@ -391,25 +388,17 @@ class CallActivity : ComponentActivity() {
 
     @Suppress("DEPRECATION")
     private fun addLockScreenFlags() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
-            val keyguardManager = getSystemService(KeyguardManager::class.java)
-            keyguardManager?.requestDismissKeyguard(this, null)
-        } else {
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-            )
-        }
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
+        val keyguardManager = getSystemService(KeyguardManager::class.java)
+        keyguardManager?.requestDismissKeyguard(this, null)
     }
 
     private fun formatDuration(seconds: Int): String {
         val h = seconds / 3600
         val m = (seconds % 3600) / 60
         val s = seconds % 60
-        return if (h > 0) String.format("%d:%02d:%02d", h, m, s)
-        else String.format("%02d:%02d", m, s)
+        return if (h > 0) String.format(Locale.US, "%d:%02d:%02d", h, m, s)
+        else String.format(Locale.US, "%02d:%02d", m, s)
     }
 }

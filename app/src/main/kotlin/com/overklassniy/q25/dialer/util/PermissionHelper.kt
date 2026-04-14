@@ -56,10 +56,6 @@ object PermissionHelper {
         return hasPermission(context, Manifest.permission.READ_CALL_LOG)
     }
 
-    fun hasPhonePermission(context: Context): Boolean {
-        return hasPermission(context, Manifest.permission.CALL_PHONE)
-    }
-
     fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boolean {
         val expectedComponentName = ComponentName(context, serviceClass)
         val enabledServices = Settings.Secure.getString(

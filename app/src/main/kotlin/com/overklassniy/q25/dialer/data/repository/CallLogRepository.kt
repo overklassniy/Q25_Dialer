@@ -101,8 +101,4 @@ class CallLogRepository(private val context: Context) {
 
         return groups
     }
-
-    suspend fun deleteCallLog() = withContext(Dispatchers.IO) {
-        context.contentResolver.delete(CallLog.Calls.CONTENT_URI, null, null)
-    }
 }

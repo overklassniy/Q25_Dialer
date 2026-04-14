@@ -150,14 +150,20 @@ class ContactsRepository(private val context: Context) {
 
         context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
+                val idIdx = cursor.getColumnIndex(ContactsContract.PhoneLookup._ID)
+                val nameIdx = cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)
+                val photoIdx = cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)
+                val photoFullIdx = cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)
+                val lookupIdx = cursor.getColumnIndex(ContactsContract.PhoneLookup.LOOKUP_KEY)
+                val starredIdx = cursor.getColumnIndex(ContactsContract.PhoneLookup.STARRED)
                 return Contact(
-                    id = cursor.getLong(cursor.getColumnIndex(ContactsContract.PhoneLookup._ID)),
-                    name = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)) ?: "",
+                    id = if (idIdx >= 0) cursor.getLong(idIdx) else 0L,
+                    name = if (nameIdx >= 0) cursor.getString(nameIdx) ?: "" else "",
                     phoneNumbers = persistentListOf(PhoneNumber(number, PhoneUtils.normalizeNumber(number))),
-                    photoUri = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)),
-                    photoFullUri = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)),
-                    lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.LOOKUP_KEY)),
-                    starred = cursor.getInt(cursor.getColumnIndex(ContactsContract.PhoneLookup.STARRED)) == 1,
+                    photoUri = if (photoIdx >= 0) cursor.getString(photoIdx) else null,
+                    photoFullUri = if (photoFullIdx >= 0) cursor.getString(photoFullIdx) else null,
+                    lookupKey = if (lookupIdx >= 0) cursor.getString(lookupIdx) else null,
+                    starred = if (starredIdx >= 0) cursor.getInt(starredIdx) == 1 else false,
                 )
             }
         }
@@ -181,14 +187,20 @@ class ContactsRepository(private val context: Context) {
             null,
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
+                val idIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                val nameIdx = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)
+                val photoIdx = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)
+                val photoFullIdx = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+                val lookupIdx = cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
+                val starredIdx = cursor.getColumnIndex(ContactsContract.Contacts.STARRED)
                 return Contact(
-                    id = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID)),
-                    name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)) ?: "",
+                    id = if (idIdx >= 0) cursor.getLong(idIdx) else 0L,
+                    name = if (nameIdx >= 0) cursor.getString(nameIdx) ?: "" else "",
                     phoneNumbers = persistentListOf(PhoneNumber(originalNumber, PhoneUtils.normalizeNumber(originalNumber))),
-                    photoUri = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)),
-                    photoFullUri = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)),
-                    lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)),
-                    starred = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.STARRED)) == 1,
+                    photoUri = if (photoIdx >= 0) cursor.getString(photoIdx) else null,
+                    photoFullUri = if (photoFullIdx >= 0) cursor.getString(photoFullIdx) else null,
+                    lookupKey = if (lookupIdx >= 0) cursor.getString(lookupIdx) else null,
+                    starred = if (starredIdx >= 0) cursor.getInt(starredIdx) == 1 else false,
                 )
             }
         }

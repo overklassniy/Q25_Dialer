@@ -1,6 +1,7 @@
 package com.overklassniy.q25.dialer.service
 
 import android.accessibilityservice.AccessibilityService
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +15,7 @@ import com.overklassniy.q25.dialer.call.NoCall
 import com.overklassniy.q25.dialer.call.SingleCall
 import com.overklassniy.q25.dialer.data.PreferencesManager
 
+@SuppressLint("AccessibilityPolicy")
 class QwertyAccessibilityService : AccessibilityService() {
 
     private val prefs by lazy { PreferencesManager(this) }
@@ -117,14 +119,13 @@ class QwertyAccessibilityService : AccessibilityService() {
                         // First press: schedule long-press detection
                         longPressKeyCode = keyCode
                         longPressConsumed = false
-                        val char = dialChar
                         longPressRunnable = Runnable {
                             longPressConsumed = true
-                            if (char == '0') {
+                            if (dialChar == '0') {
                                 MainActivity.onAccessibilityBackspace?.invoke()
                                 MainActivity.onAccessibilityDialpadChar?.invoke('+')
                             } else {
-                                val slot = char.digitToIntOrNull()
+                                val slot = dialChar.digitToIntOrNull()
                                 if (slot != null && slot in 2..9) {
                                     MainActivity.onAccessibilityBackspace?.invoke()
                                     MainActivity.onSpeedDial?.invoke(slot)
@@ -194,36 +195,7 @@ class QwertyAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun mapKeyToLetter(keyCode: Int): Char? {
-        return when (keyCode) {
-            KeyEvent.KEYCODE_A -> 'a'; KeyEvent.KEYCODE_B -> 'b'
-            KeyEvent.KEYCODE_C -> 'c'; KeyEvent.KEYCODE_D -> 'd'
-            KeyEvent.KEYCODE_E -> 'e'; KeyEvent.KEYCODE_F -> 'f'
-            KeyEvent.KEYCODE_G -> 'g'; KeyEvent.KEYCODE_H -> 'h'
-            KeyEvent.KEYCODE_I -> 'i'; KeyEvent.KEYCODE_J -> 'j'
-            KeyEvent.KEYCODE_K -> 'k'; KeyEvent.KEYCODE_L -> 'l'
-            KeyEvent.KEYCODE_M -> 'm'; KeyEvent.KEYCODE_N -> 'n'
-            KeyEvent.KEYCODE_O -> 'o'; KeyEvent.KEYCODE_P -> 'p'
-            KeyEvent.KEYCODE_Q -> 'q'; KeyEvent.KEYCODE_R -> 'r'
-            KeyEvent.KEYCODE_S -> 's'; KeyEvent.KEYCODE_T -> 't'
-            KeyEvent.KEYCODE_U -> 'u'; KeyEvent.KEYCODE_V -> 'v'
-            KeyEvent.KEYCODE_W -> 'w'; KeyEvent.KEYCODE_X -> 'x'
-            KeyEvent.KEYCODE_Y -> 'y'; KeyEvent.KEYCODE_Z -> 'z'
-            KeyEvent.KEYCODE_0 -> '0'; KeyEvent.KEYCODE_1 -> '1'
-            KeyEvent.KEYCODE_2 -> '2'; KeyEvent.KEYCODE_3 -> '3'
-            KeyEvent.KEYCODE_4 -> '4'; KeyEvent.KEYCODE_5 -> '5'
-            KeyEvent.KEYCODE_6 -> '6'; KeyEvent.KEYCODE_7 -> '7'
-            KeyEvent.KEYCODE_8 -> '8'; KeyEvent.KEYCODE_9 -> '9'
-            KeyEvent.KEYCODE_SPACE -> ' '
-            KeyEvent.KEYCODE_MINUS -> '-'
-            KeyEvent.KEYCODE_PERIOD -> '.'
-            else -> null
-        }
-    }
-
     companion object {
-        const val EXTRA_DIALPAD_CHAR = "dialpad_char"
-        const val EXTRA_OPEN_DIALPAD = "open_dialpad"
         const val EXTRA_MAKE_CALL = "make_call"
         // Must match NavRoutes values
         private const val SCREEN_RECENTS = "recents"

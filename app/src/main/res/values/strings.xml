@@ -12,7 +12,6 @@
 
     <!-- Call -->
     <string name="incoming_call">Incoming call</string>
-    <string name="outgoing_call">Outgoing call</string>
     <string name="ongoing_call">Ongoing call</string>
     <string name="call_ended">Call ended</string>
     <string name="call_on_hold">On hold</string>
@@ -31,14 +30,9 @@
     <string name="audio_bluetooth">Bluetooth</string>
     <string name="call_notes">Notes</string>
     <string name="call_notes_hint">Type notes during the call…</string>
-    <string name="swap">Swap</string>
-    <string name="merge">Merge</string>
-    <string name="calling">Calling…</string>
     <string name="dialing">Dialing…</string>
     <string name="ringing">Ringing…</string>
     <string name="unknown_caller">Unknown</string>
-    <string name="private_number">Private number</string>
-    <string name="conference_call">Conference call</string>
 
     <!-- Dialpad -->
     <string name="call">Call</string>
@@ -48,12 +42,9 @@
     <!-- Contacts -->
     <string name="no_contacts">No contacts found</string>
     <string name="no_recents">No recent calls</string>
-    <string name="no_favorites">No favorites</string>
     <string name="search">Search</string>
 
     <!-- Permissions -->
-    <string name="set_default_dialer_failed">Could not set default dialer</string>
-    <string name="enable_accessibility_service">Enable accessibility service for physical keyboard support</string>
     <string name="accessibility_service_description">Required for physical QWERTY keyboard support. Intercepts key events to enable dialpad input from hardware keys.</string>
 
     <!-- Call log -->
@@ -63,10 +54,7 @@
     <string name="missed">Missed</string>
     <string name="rejected">Rejected</string>
     <string name="blocked">Blocked</string>
-    <string name="today">Today</string>
-    <string name="yesterday">Yesterday</string>
     <string name="show_call_details">Show call details</string>
-    <string name="details">Details</string>
 
     <!-- Selection actions -->
     <string name="selected_count">%d selected</string>
@@ -74,7 +62,6 @@
     <string name="send_sms">SMS</string>
     <string name="copy_number">Copy number</string>
     <string name="delete">Delete</string>
-    <string name="delete_confirmation">Are you sure you want to delete?</string>
     <string name="block_number">Block number</string>
     <string name="unblock_number">Unblock number</string>
     <string name="confirm_block_number">Are you sure you want to block %s?</string>
@@ -83,7 +70,6 @@
     <string name="number_copied">Number copied</string>
 
     <!-- Contact detail -->
-    <string name="contact_detail">Contact detail</string>
     <string name="call_history">Call history</string>
     <string name="no_call_history">No call history</string>
     <string name="mobile">Mobile</string>
@@ -98,11 +84,8 @@
 
     <!-- Notification -->
     <string name="call_notification_channel">Active calls</string>
-    <string name="incoming_call_notification">Incoming call from %s</string>
-    <string name="ongoing_call_notification">Call with %s</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_welcome">Welcome</string>
     <string name="onboarding_default_dialer">Set as default phone app</string>
     <string name="onboarding_default_dialer_desc">Required to handle phone calls</string>
     <string name="onboarding_accessibility">Enable keyboard support</string>
@@ -117,9 +100,6 @@
     <string name="settings_dialpad_section">Dialpad</string>
     <string name="settings_hide_virtual_dialpad">Hide virtual dialpad</string>
     <string name="settings_hide_virtual_dialpad_desc">Use physical QWERTY keyboard for number input</string>
-    <string name="settings_accessibility_service">Accessibility service</string>
-    <string name="settings_accessibility_enabled">Enabled</string>
-    <string name="settings_accessibility_disabled">Disabled – tap to enable</string>
     <string name="settings_interface_section">Interface</string>
     <string name="settings_expanded_bottom_nav">Expanded navigation bar</string>
     <string name="settings_expanded_bottom_nav_desc">Show labels under navigation icons</string>
@@ -145,12 +125,10 @@
     <string name="settings_about_section">About</string>
     <string name="settings_version">Version %s</string>
     <string name="settings_update_available">Update available: %s</string>
-    <string name="settings_up_to_date">Up to date</string>
     <string name="settings_open_github">Open GitHub</string>
     <string name="settings_checking_updates">Checking for updates…</string>
     <string name="settings_changelog">Changelog</string>
     <string name="settings_changelog_desc">View version history</string>
-    <string name="settings_changelog_loading">Loading changelog…</string>
     <string name="settings_changelog_error">Failed to load changelog</string>
     <string name="settings_github">Source code</string>
     <string name="settings_github_desc">View on GitHub</string>
@@ -221,11 +199,7 @@
     <string name="settings_speed_dial">Speed dial</string>
     <string name="settings_speed_dial_desc">Assign contacts to dialpad keys for quick calling</string>
     <string name="speed_dial_not_assigned">Not assigned</string>
-    <string name="speed_dial_assign">Assign contact</string>
-    <string name="speed_dial_change">Change contact</string>
     <string name="speed_dial_remove">Remove</string>
-    <string name="speed_dial_key_label">Key %s</string>
-    <string name="speed_dial_calling">Calling %s…</string>
     <string name="speed_dial_no_assignment">No contact assigned to key %s</string>
     <string name="speed_dial_pick_contact">Pick contact</string>
     <string name="speed_dial_search_contacts">Search contacts</string>

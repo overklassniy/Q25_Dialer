@@ -38,7 +38,7 @@ class App : Application() {
                 options.tracesSampleRate = 0.01
                 options.isEnableAutoSessionTracking = false
                 options.release = "${instance.packageName}@${BuildConfig.VERSION_NAME}"
-                options.environment = if (BuildConfig.DEBUG) "debug" else "production"
+                options.environment = if (@Suppress("SENSELESS_COMPARISON") BuildConfig.DEBUG) "debug" else "production"
             }
         }
 

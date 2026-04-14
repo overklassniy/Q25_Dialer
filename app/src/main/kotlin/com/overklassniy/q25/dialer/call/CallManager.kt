@@ -59,8 +59,8 @@ class CallManager {
                 try { call.unregisterCallback(cb) } catch (_: Exception) { }
             }
             // Auto-unhold the remaining call so the line is not stuck on hold
-            val remaining = calls.filter { it.state != Call.STATE_DISCONNECTED }
-            if (remaining.size == 1 && remaining[0].state == Call.STATE_HOLDING) {
+            val remaining = calls.filter { it.details.state != Call.STATE_DISCONNECTED }
+            if (remaining.size == 1 && remaining[0].details.state == Call.STATE_HOLDING) {
                 try { remaining[0].unhold() } catch (_: Exception) { }
             }
         }
@@ -73,13 +73,13 @@ class CallManager {
 
         fun getPhoneState(): PhoneState {
             // Filter out any lingering disconnected calls
-            val liveCalls = calls.filter { it.state != Call.STATE_DISCONNECTED }
+            val liveCalls = calls.filter { it.details.state != Call.STATE_DISCONNECTED }
             return when (liveCalls.size) {
                 0 -> NoCall
                 1 -> SingleCall(liveCalls.first())
                 else -> {
-                    val active = liveCalls.find { it.state == Call.STATE_ACTIVE }
-                        ?: liveCalls.find { it.state == Call.STATE_DIALING || it.state == Call.STATE_CONNECTING }
+                    val active = liveCalls.find { it.details.state == Call.STATE_ACTIVE }
+                        ?: liveCalls.find { it.details.state == Call.STATE_DIALING || it.details.state == Call.STATE_CONNECTING }
                         ?: liveCalls[0]
                     val held = liveCalls.first { it != active }
                     TwoCalls(active, held)
@@ -122,34 +122,21 @@ class CallManager {
             }
         }
 
-        fun merge() {
-            val state = getPhoneState()
-            if (state is TwoCalls) {
-                state.active.conference(state.held)
-            }
-        }
-
         fun setMuted(muted: Boolean) {
             inCallService?.setMuted(muted)
         }
 
+        @Suppress("DEPRECATION")
         fun setSpeaker(on: Boolean) {
             isSpeakerOn = on
             val route = if (on) CallAudioState.ROUTE_SPEAKER else CallAudioState.ROUTE_WIRED_OR_EARPIECE
             inCallService?.setAudioRoute(route)
         }
 
+        @Suppress("DEPRECATION")
         fun setAudioRoute(route: Int) {
             isSpeakerOn = route == CallAudioState.ROUTE_SPEAKER
             inCallService?.setAudioRoute(route)
-        }
-
-        fun getCurrentAudioRoute(): Int {
-            return inCallService?.callAudioState?.route ?: CallAudioState.ROUTE_EARPIECE
-        }
-
-        fun getSupportedAudioRoutes(): Int {
-            return inCallService?.callAudioState?.supportedRouteMask ?: CallAudioState.ROUTE_EARPIECE
         }
 
         fun playDtmf(char: Char) {

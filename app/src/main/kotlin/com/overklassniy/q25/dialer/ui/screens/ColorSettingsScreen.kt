@@ -24,18 +24,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,9 +52,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.overklassniy.q25.dialer.R
 import com.overklassniy.q25.dialer.data.PreferencesManager
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import com.overklassniy.q25.dialer.ui.theme.Background
 import com.overklassniy.q25.dialer.ui.theme.CallGreen
 import com.overklassniy.q25.dialer.ui.theme.CallRed
@@ -70,8 +64,6 @@ import com.overklassniy.q25.dialer.ui.theme.Primary
 import com.overklassniy.q25.dialer.ui.theme.Secondary
 import com.overklassniy.q25.dialer.ui.theme.Surface
 import com.overklassniy.q25.dialer.ui.theme.SurfaceVariant
-import com.overklassniy.q25.dialer.ui.theme.PrimaryContainer
-import com.overklassniy.q25.dialer.ui.theme.OnPrimaryContainer
 
 private val defaultColors = mapOf(
     PreferencesManager.KEY_COLOR_PRIMARY to Primary,
@@ -102,7 +94,6 @@ private val defaultColors = mapOf(
 
 @Composable
 fun ColorSettingsScreen(
-    onNavigateBack: () -> Unit = {},
     onColorsChanged: () -> Unit = {},
     highlightedIndex: Int = -1,
     activateTrigger: Int = 0,
@@ -112,7 +103,7 @@ fun ColorSettingsScreen(
     val prefs = remember { PreferencesManager(context) }
 
     var showColorPicker by remember { mutableStateOf<String?>(null) }
-    var colorRefreshKey by remember { mutableStateOf(0) }
+    var colorRefreshKey by remember { mutableIntStateOf(0) }
 
     val themeColorEntries = remember(colorRefreshKey) {
         listOf(
@@ -203,7 +194,7 @@ fun ColorSettingsScreen(
             modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
         )
 
-        themeColorEntries.forEachIndexed { index, (key, labelRes, displayColor) ->
+        themeColorEntries.forEachIndexed { _, (key, labelRes, displayColor) ->
             val rowIndex = nextIndex()
             ColorSettingRow(
                 title = stringResource(labelRes),
@@ -226,7 +217,7 @@ fun ColorSettingsScreen(
             modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
         )
 
-        incomingCallColorEntries.forEachIndexed { index, (key, labelRes, displayColor) ->
+        incomingCallColorEntries.forEachIndexed { _, (key, labelRes, displayColor) ->
             val rowIndex = nextIndex()
             ColorSettingRow(
                 title = stringResource(labelRes),
@@ -249,7 +240,7 @@ fun ColorSettingsScreen(
             modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
         )
 
-        ongoingCallColorEntries.forEachIndexed { index, (key, labelRes, displayColor) ->
+        ongoingCallColorEntries.forEachIndexed { _, (key, labelRes, displayColor) ->
             val rowIndex = nextIndex()
             ColorSettingRow(
                 title = stringResource(labelRes),
@@ -337,12 +328,14 @@ fun ColorSettingsScreen(
                 prefs.setCustomColor(pickerKey, color.value.toLong())
                 colorRefreshKey++
                 onColorsChanged()
+                @Suppress("UNUSED_VALUE")
                 showColorPicker = null
             },
             onReset = {
                 prefs.removeCustomColor(pickerKey)
                 colorRefreshKey++
                 onColorsChanged()
+                @Suppress("UNUSED_VALUE")
                 showColorPicker = null
             },
         )

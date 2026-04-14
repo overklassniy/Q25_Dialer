@@ -61,7 +61,6 @@ import com.overklassniy.q25.dialer.ui.theme.CallGreen
 import com.overklassniy.q25.dialer.ui.theme.CallRed
 import com.overklassniy.q25.dialer.ui.theme.DefaultCallBackground
 import com.overklassniy.q25.dialer.ui.theme.LightCallControlBtnBg
-import com.overklassniy.q25.dialer.ui.theme.LightCallDialpadBg
 import com.overklassniy.q25.dialer.ui.theme.LightCallDialpadText
 import com.overklassniy.q25.dialer.ui.theme.LightCallHoldBar
 import com.overklassniy.q25.dialer.ui.theme.LightCallText
@@ -102,7 +101,6 @@ fun InCallScreen(
     hasHeldCall: Boolean = false,
     heldCallerName: String? = null,
     onSwapCall: () -> Unit = {},
-    onMergeCall: () -> Unit = {},
     isDarkTheme: Boolean = true,
 ) {
     var showNotesSheet by remember { mutableStateOf(false) }
@@ -117,7 +115,6 @@ fun InCallScreen(
     val defaultText = if (isDarkTheme) Color.White else LightCallText
     val defaultControlBtnBg = if (isDarkTheme) Color(0xFF3A3A3C) else LightCallControlBtnBg
     val defaultControlBtnIcon = if (isDarkTheme) Color.White else LightCallText
-    val defaultDialpadBg = if (isDarkTheme) Color(0xFF1C1C1E) else LightCallDialpadBg
     val defaultDialpadText = if (isDarkTheme) Color.White else LightCallDialpadText
     val defaultHoldBar = if (isDarkTheme) Color(0xFF2C2C2E) else LightCallHoldBar
 
@@ -134,7 +131,6 @@ fun InCallScreen(
     val ongoingCallEndBtn = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_END_BUTTON, CallRed) }
     val ongoingCallControlBtnBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_BG, defaultControlBtnBg) }
     val ongoingCallControlBtnIcon = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_CONTROL_BUTTON_ICON, defaultControlBtnIcon) }
-    val ongoingCallDialpadBg = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_BG, defaultDialpadBg) }
     val ongoingCallDialpadText = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_DIALPAD_TEXT, defaultDialpadText) }
     val ongoingCallHoldBar = remember { cc(PreferencesManager.KEY_COLOR_ONGOING_CALL_HOLD_BAR, defaultHoldBar) }
 
@@ -319,7 +315,6 @@ fun InCallScreen(
                 // Compact dialpad grid (smaller keys for 720x720)
                 CompactDialpadGrid(
                     onKeyPress = { onDtmf(it) },
-                    backgroundColor = ongoingCallDialpadBg,
                     textColor = ongoingCallDialpadText,
                 )
 
@@ -519,7 +514,6 @@ fun InCallScreen(
 @Composable
 private fun CompactDialpadGrid(
     onKeyPress: (Char) -> Unit,
-    backgroundColor: Color = Color(0xFF1C1C1E),
     textColor: Color = Color.White,
 ) {
     val dividerColor = textColor.copy(alpha = 0.2f)

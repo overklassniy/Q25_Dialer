@@ -1,10 +1,11 @@
 package com.overklassniy.q25.dialer.util
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
@@ -21,11 +22,6 @@ object AvatarCache {
     /** Synchronous lookup — returns cached ImageBitmap or null. */
     fun get(uri: String): ImageBitmap? = cache[uri]
 
-    /** Store a bitmap in the cache. */
-    fun put(uri: String, bitmap: ImageBitmap) {
-        cache[uri] = bitmap
-    }
-
     /**
      * Load a contact photo from [ContentResolver], cache it, and return the bitmap.
      * Returns null if the URI cannot be resolved or decoded.
@@ -35,7 +31,7 @@ object AvatarCache {
         cache[uri]?.let { return it }
         return withContext(Dispatchers.IO) {
             try {
-                context.contentResolver.openInputStream(Uri.parse(uri))?.use { stream ->
+                context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
                     BitmapFactory.decodeStream(stream)?.let { bitmap ->
                         val imageBitmap = bitmap.asImageBitmap()
                         cache[uri] = imageBitmap

@@ -1,6 +1,6 @@
 package com.overklassniy.q25.dialer.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,7 +36,7 @@ fun SelectionActionBar(
     onAddContact: (() -> Unit)? = null,
     onBlock: (() -> Unit)? = null,
     isBlocked: Boolean = false,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier

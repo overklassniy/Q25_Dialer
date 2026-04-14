@@ -12,7 +12,6 @@
 
     <!-- Call -->
     <string name="incoming_call">Входящий вызов</string>
-    <string name="outgoing_call">Исходящий вызов</string>
     <string name="ongoing_call">Текущий вызов</string>
     <string name="call_ended">Вызов завершён</string>
     <string name="call_on_hold">На удержании</string>
@@ -31,14 +30,9 @@
     <string name="audio_bluetooth">Bluetooth</string>
     <string name="call_notes">Заметки</string>
     <string name="call_notes_hint">Записывайте заметки во время звонка…</string>
-    <string name="swap">Переключить</string>
-    <string name="merge">Объединить</string>
-    <string name="calling">Вызов…</string>
     <string name="dialing">Набор…</string>
     <string name="ringing">Звонок…</string>
     <string name="unknown_caller">Неизвестный</string>
-    <string name="private_number">Скрытый номер</string>
-    <string name="conference_call">Конференц-вызов</string>
 
     <!-- Dialpad -->
     <string name="call">Позвонить</string>
@@ -48,12 +42,9 @@
     <!-- Contacts -->
     <string name="no_contacts">Контакты не найдены</string>
     <string name="no_recents">Нет недавних вызовов</string>
-    <string name="no_favorites">Нет избранных</string>
     <string name="search">Поиск</string>
 
     <!-- Permissions -->
-    <string name="set_default_dialer_failed">Не удалось установить звонилку по умолчанию</string>
-    <string name="enable_accessibility_service">Включите службу специальных возможностей для поддержки физической клавиатуры</string>
     <string name="accessibility_service_description">Необходима для поддержки физической клавиатуры. Перехватывает нажатия клавиш с аппаратных кнопок.</string>
 
     <!-- Call log -->
@@ -63,10 +54,7 @@
     <string name="missed">Пропущенные</string>
     <string name="rejected">Отклонённые</string>
     <string name="blocked">Заблокированные</string>
-    <string name="today">Сегодня</string>
-    <string name="yesterday">Вчера</string>
     <string name="show_call_details">Детали звонка</string>
-    <string name="details">Детали</string>
 
     <!-- Selection actions -->
     <string name="selected_count">Выбрано: %d</string>
@@ -74,7 +62,6 @@
     <string name="send_sms">СМС</string>
     <string name="copy_number">Копировать номер</string>
     <string name="delete">Удалить</string>
-    <string name="delete_confirmation">Вы уверены что хотите удалить?</string>
     <string name="block_number">Заблокировать номер</string>
     <string name="unblock_number">Разблокировать номер</string>
     <string name="confirm_block_number">Вы уверены, что хотите заблокировать %s?</string>
@@ -83,7 +70,6 @@
     <string name="number_copied">Номер скопирован</string>
 
     <!-- Contact detail -->
-    <string name="contact_detail">Контакт</string>
     <string name="call_history">История звонков</string>
     <string name="no_call_history">Нет истории звонков</string>
     <string name="mobile">Мобильный</string>
@@ -98,11 +84,8 @@
 
     <!-- Notification -->
     <string name="call_notification_channel">Активные вызовы</string>
-    <string name="incoming_call_notification">Входящий вызов от %s</string>
-    <string name="ongoing_call_notification">Вызов с %s</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_welcome">Добро пожаловать</string>
     <string name="onboarding_default_dialer">Установить как приложение для звонков</string>
     <string name="onboarding_default_dialer_desc">Необходимо для совершения звонков</string>
     <string name="onboarding_accessibility">Включить поддержку клавиатуры</string>
@@ -117,9 +100,6 @@
     <string name="settings_dialpad_section">Набор номера</string>
     <string name="settings_hide_virtual_dialpad">Скрыть виртуальную клавиатуру</string>
     <string name="settings_hide_virtual_dialpad_desc">Использовать физическую клавиатуру для набора номера</string>
-    <string name="settings_accessibility_service">Служба специальных возможностей</string>
-    <string name="settings_accessibility_enabled">Включена</string>
-    <string name="settings_accessibility_disabled">Отключена – нажмите для включения</string>
     <string name="settings_interface_section">Интерфейс</string>
     <string name="settings_expanded_bottom_nav">Расширенная панель навигации</string>
     <string name="settings_expanded_bottom_nav_desc">Показывать подписи под иконками навигации</string>
@@ -145,12 +125,10 @@
     <string name="settings_about_section">О приложении</string>
     <string name="settings_version">Версия %s</string>
     <string name="settings_update_available">Доступно обновление: %s</string>
-    <string name="settings_up_to_date">Актуальная версия</string>
     <string name="settings_open_github">Открыть GitHub</string>
     <string name="settings_checking_updates">Проверка обновлений…</string>
     <string name="settings_changelog">Список изменений</string>
     <string name="settings_changelog_desc">Посмотреть историю версий</string>
-    <string name="settings_changelog_loading">Загрузка списка изменений…</string>
     <string name="settings_changelog_error">Не удалось загрузить список изменений</string>
     <string name="settings_github">Исходный код</string>
     <string name="settings_github_desc">Открыть на GitHub</string>
@@ -221,11 +199,7 @@
     <string name="settings_speed_dial">Быстрый набор</string>
     <string name="settings_speed_dial_desc">Назначьте контакты на клавиши для быстрого вызова</string>
     <string name="speed_dial_not_assigned">Не назначено</string>
-    <string name="speed_dial_assign">Назначить контакт</string>
-    <string name="speed_dial_change">Изменить контакт</string>
     <string name="speed_dial_remove">Удалить</string>
-    <string name="speed_dial_key_label">Клавиша %s</string>
-    <string name="speed_dial_calling">Звонок %s…</string>
     <string name="speed_dial_no_assignment">На клавишу %s не назначен контакт</string>
     <string name="speed_dial_pick_contact">Выбрать контакт</string>
     <string name="speed_dial_search_contacts">Поиск контактов</string>

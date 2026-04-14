@@ -1,11 +1,8 @@
 package com.overklassniy.q25.dialer.ui.screens
 
-import android.app.Activity
 import android.app.role.RoleManager
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
-import android.telecom.TelecomManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -57,13 +54,8 @@ fun OnboardingScreen(
     var isDefaultDialer by remember {
         mutableStateOf(
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val rm = context.getSystemService(RoleManager::class.java)
-                    rm?.isRoleHeld(RoleManager.ROLE_DIALER) == true
-                } else {
-                    val tm = context.getSystemService(TelecomManager::class.java)
-                    tm?.defaultDialerPackage == context.packageName
-                }
+                val rm = context.getSystemService(RoleManager::class.java)
+                rm?.isRoleHeld(RoleManager.ROLE_DIALER) == true
             } catch (_: Exception) { false }
         )
     }
@@ -77,13 +69,8 @@ fun OnboardingScreen(
         ActivityResultContracts.StartActivityForResult()
     ) { _ ->
         isDefaultDialer = try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val rm = context.getSystemService(RoleManager::class.java)
-                rm?.isRoleHeld(RoleManager.ROLE_DIALER) == true
-            } else {
-                val tm = context.getSystemService(TelecomManager::class.java)
-                tm?.defaultDialerPackage == context.packageName
-            }
+            val rm = context.getSystemService(RoleManager::class.java)
+            rm?.isRoleHeld(RoleManager.ROLE_DIALER) == true
         } catch (_: Exception) { false }
     }
 
@@ -106,22 +93,15 @@ fun OnboardingScreen(
                     changeLabel = stringResource(R.string.onboarding_change),
                     onAction = {
                         try {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                val rm = context.getSystemService(RoleManager::class.java)
-                                if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_DIALER)) {
-                                    if (rm.isRoleHeld(RoleManager.ROLE_DIALER)) {
-                                        // Already default dialer – open default apps settings to change
-                                        context.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
-                                    } else {
-                                        val intent = rm.createRequestRoleIntent(RoleManager.ROLE_DIALER)
-                                        dialerLauncher.launch(intent)
-                                    }
+                            val rm = context.getSystemService(RoleManager::class.java)
+                            if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_DIALER)) {
+                                if (rm.isRoleHeld(RoleManager.ROLE_DIALER)) {
+                                    // Already default dialer – open default apps settings to change
+                                    context.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+                                } else {
+                                    val intent = rm.createRequestRoleIntent(RoleManager.ROLE_DIALER)
+                                    dialerLauncher.launch(intent)
                                 }
-                            } else {
-                                val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER).apply {
-                                    putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, context.packageName)
-                                }
-                                dialerLauncher.launch(intent)
                             }
                         } catch (_: Exception) { }
                     },

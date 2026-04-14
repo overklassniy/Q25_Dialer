@@ -7,11 +7,6 @@ val Primary = Color(0xFF5589F1)
 val OnPrimary = Color(0xFFFFFFFF)
 val PrimaryContainer = Color(0xFF1C1C1E)
 val OnPrimaryContainer = Color(0xFFDEDEDE)
-val PrimaryDark = Color(0xFF2960F5)
-
-// Accent color
-val Accent = Color(0xFF09F4A1)
-val OnAccent = Color(0xFF000000)
 
 // Secondary
 val Secondary = Color(0xFF405B98)
@@ -47,7 +42,6 @@ val OutlineVariant = Color(0x55808080)
 
 // Selection/Hover states
 val ActivatedItemForeground = Color(0x44666666)
-val PressedItemForeground = Color(0x08000000)
 
 // Call colors
 val CallGreen = Color(0xFF4CAF50)
@@ -69,13 +63,6 @@ val LetterBackgroundColors = listOf(
     Color(0xFF2ED158),  // Green
 )
 
-// Additional greys
-val DarkGrey = Color(0xFF333333)
-val BottomTabsDarkBackground = Color(0xFF323236)
-val BottomTabsBlackBackground = Color(0xFF1B1B1B)
-val HintWhite = Color(0x99FFFFFF)
-val DividerGrey = Color(0x55808080)
-
 // Light theme colors
 val LightBackground = Color(0xFFFFFFFF)
 val LightOnBackground = Color(0xFF424242)
@@ -90,6 +77,5 @@ val LightOutlineVariant = Color(0xFFE0E0E0)
 val LightDefaultCallBackground = Color(0xFFF5F5F5)
 val LightCallText = Color(0xFF212121)
 val LightCallControlBtnBg = Color(0xFFE0E0E0)
-val LightCallDialpadBg = Color(0xFFFFFFFF)
 val LightCallDialpadText = Color(0xFF212121)
 val LightCallHoldBar = Color(0xFFE8E8E8)

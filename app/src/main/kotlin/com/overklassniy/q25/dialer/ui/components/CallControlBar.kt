@@ -20,7 +20,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -97,7 +97,7 @@ fun CallControlBar(
             if (isBluetoothAvailable) {
                 val audioIcon = when (currentAudioRoute) {
                     CallAudioState.ROUTE_BLUETOOTH -> Icons.Filled.Bluetooth
-                    CallAudioState.ROUTE_SPEAKER -> Icons.Filled.VolumeUp
+                    CallAudioState.ROUTE_SPEAKER -> Icons.AutoMirrored.Filled.VolumeUp
                     else -> Icons.Filled.Hearing
                 }
                 val audioLabel = when (currentAudioRoute) {
@@ -117,7 +117,7 @@ fun CallControlBar(
                 )
             } else {
                 CallControlButton(
-                    icon = Icons.Filled.VolumeUp,
+                    icon = Icons.AutoMirrored.Filled.VolumeUp,
                     label = stringResource(R.string.speaker),
                     isActive = isSpeakerOn,
                     onClick = onToggleSpeaker,
@@ -188,7 +188,7 @@ private fun AudioRoutePickerDialog(
 ) {
     val routes = listOf(
         CallAudioState.ROUTE_EARPIECE to (stringResource(R.string.audio_earpiece) to Icons.Filled.Hearing),
-        CallAudioState.ROUTE_SPEAKER to (stringResource(R.string.speaker) to Icons.Filled.VolumeUp),
+        CallAudioState.ROUTE_SPEAKER to (stringResource(R.string.speaker) to Icons.AutoMirrored.Filled.VolumeUp),
         CallAudioState.ROUTE_BLUETOOTH to (stringResource(R.string.audio_bluetooth) to Icons.Filled.Bluetooth),
     )
 
@@ -245,7 +245,6 @@ fun CallControlButton(
     textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     val bgColor = if (isActive) activeBgColor.copy(alpha = 0.8f) else activeBgColor
-    val iconColor = activeIconColor
 
     Column(
         modifier = modifier,
@@ -254,7 +253,7 @@ fun CallControlButton(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = iconColor,
+            tint = activeIconColor,
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
