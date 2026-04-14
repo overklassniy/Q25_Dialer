@@ -216,4 +216,17 @@
     <string name="swap_calls">Swap</string>
     <string name="settings_fullscreen_avatar">Fullscreen contact photo</string>
     <string name="settings_fullscreen_avatar_desc">Show contact photo as full-screen background during calls</string>
+
+    <!-- Speed Dial -->
+    <string name="settings_speed_dial">Speed dial</string>
+    <string name="settings_speed_dial_desc">Assign contacts to dialpad keys for quick calling</string>
+    <string name="speed_dial_not_assigned">Not assigned</string>
+    <string name="speed_dial_assign">Assign contact</string>
+    <string name="speed_dial_change">Change contact</string>
+    <string name="speed_dial_remove">Remove</string>
+    <string name="speed_dial_key_label">Key %s</string>
+    <string name="speed_dial_calling">Calling %s…</string>
+    <string name="speed_dial_no_assignment">No contact assigned to key %s</string>
+    <string name="speed_dial_pick_contact">Pick contact</string>
+    <string name="speed_dial_search_contacts">Search contacts</string>
 </resources>

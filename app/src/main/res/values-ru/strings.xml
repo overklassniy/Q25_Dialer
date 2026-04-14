@@ -216,4 +216,17 @@
     <string name="swap_calls">Переключить</string>
     <string name="settings_fullscreen_avatar">Фото контакта на весь экран</string>
     <string name="settings_fullscreen_avatar_desc">Показывать фото контакта как фон во время звонка</string>
+
+    <!-- Speed Dial -->
+    <string name="settings_speed_dial">Быстрый набор</string>
+    <string name="settings_speed_dial_desc">Назначьте контакты на клавиши для быстрого вызова</string>
+    <string name="speed_dial_not_assigned">Не назначено</string>
+    <string name="speed_dial_assign">Назначить контакт</string>
+    <string name="speed_dial_change">Изменить контакт</string>
+    <string name="speed_dial_remove">Удалить</string>
+    <string name="speed_dial_key_label">Клавиша %s</string>
+    <string name="speed_dial_calling">Звонок %s…</string>
+    <string name="speed_dial_no_assignment">На клавишу %s не назначен контакт</string>
+    <string name="speed_dial_pick_contact">Выбрать контакт</string>
+    <string name="speed_dial_search_contacts">Поиск контактов</string>
 </resources>

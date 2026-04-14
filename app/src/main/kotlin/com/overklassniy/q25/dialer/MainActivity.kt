@@ -113,7 +113,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 import com.overklassniy.q25.dialer.data.PreferencesManager
+import com.overklassniy.q25.dialer.data.db.AppDatabase
+import com.overklassniy.q25.dialer.data.repository.SpeedDialRepository
 import com.overklassniy.q25.dialer.service.QwertyAccessibilityService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import com.overklassniy.q25.dialer.ui.components.DialpadGrid
 import com.overklassniy.q25.dialer.ui.components.SelectionActionBar
 import com.overklassniy.q25.dialer.ui.screens.ContactDetailScreen
@@ -122,6 +127,7 @@ import com.overklassniy.q25.dialer.ui.screens.OnboardingScreen
 import com.overklassniy.q25.dialer.ui.screens.RecentsScreen
 import com.overklassniy.q25.dialer.ui.screens.ColorSettingsScreen
 import com.overklassniy.q25.dialer.ui.screens.SettingsScreen
+import com.overklassniy.q25.dialer.ui.screens.SpeedDialSettingsScreen
 import com.overklassniy.q25.dialer.ui.theme.ActivatedItemForeground
 import com.overklassniy.q25.dialer.ui.theme.CallGreen
 import com.overklassniy.q25.dialer.ui.theme.Q25DialerTheme
@@ -215,6 +221,22 @@ private fun transformToDialpad(input: String): String {
     return input.mapNotNull { qwertyCharToDialpad(it) }.joinToString("")
 }
 
+// Look up a speed dial slot and initiate a call if assigned
+private fun speedDialCall(slot: Int, context: Context) {
+    GlobalScope.launch(Dispatchers.Main) {
+        val repo = SpeedDialRepository(AppDatabase.getInstance(context))
+        val entry = repo.getBySlot(slot)
+        if (entry != null) {
+            try {
+                val encoded = Uri.encode(entry.number, "+*")
+                context.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$encoded")))
+            } catch (_: Exception) { }
+        } else {
+            Toast.makeText(context, context.getString(R.string.speed_dial_no_assignment, slot.toString()), Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
 
     // Triggered by KEY_CALL intent from QwertyAccessibilityService
@@ -222,6 +244,20 @@ class MainActivity : ComponentActivity() {
         private set
 
     val prefs by lazy { PreferencesManager(this) }
+
+    // Long-press detection for physical keyboard speed dial
+    private val longPressHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var longPressRunnable: Runnable? = null
+    private var longPressKeyCode: Int = -1
+    private var longPressConsumed = false
+    private val LONG_PRESS_TIMEOUT = 500L // ms
+
+    // Held-backspace continuous deletion
+    private val backspaceHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var backspaceRunnable: Runnable? = null
+    private var backspaceKeyDown = false
+    private val BACKSPACE_INITIAL_DELAY = 500L // ms before repeat starts
+    private val BACKSPACE_REPEAT_INTERVAL = 50L // ms between deletions
 
     private val permissionLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
@@ -319,28 +355,62 @@ class MainActivity : ComponentActivity() {
             // Recents: map QWERTY keycodes directly to dialpad chars (bypasses IME)
             if (currentScreen == NavRoutes.RECENTS) {
                 if (keyCode == KeyEvent.KEYCODE_DEL) {
-                    onAccessibilityBackspace?.invoke()
+                    if (!backspaceKeyDown) {
+                        backspaceKeyDown = true
+                        onAccessibilityBackspace?.invoke()
+                        // Schedule continuous deletion while held
+                        backspaceRunnable = object : Runnable {
+                            override fun run() {
+                                onAccessibilityBackspace?.invoke()
+                                backspaceHandler.postDelayed(this, BACKSPACE_REPEAT_INTERVAL)
+                            }
+                        }
+                        backspaceHandler.postDelayed(backspaceRunnable!!, BACKSPACE_INITIAL_DELAY)
+                    }
                     return true
                 }
                 if (keyCode == KeyEvent.KEYCODE_CALL) {
                     makeCallRequested = true
                     return true
                 }
-                keyCodeToDialpad(keyCode)?.let {
-                    onAccessibilityDialpadChar?.invoke(it)
+                keyCodeToDialpad(keyCode)?.let { dialChar ->
+                    if (event.repeatCount == 0) {
+                        // First press: schedule long-press detection
+                        longPressKeyCode = keyCode
+                        longPressConsumed = false
+                        val char = dialChar
+                        val ctx = this
+                        longPressRunnable = Runnable {
+                            longPressConsumed = true
+                            if (char == '0') {
+                                onAccessibilityBackspace?.invoke()
+                                onAccessibilityDialpadChar?.invoke('+')
+                            } else {
+                                val slot = char.digitToIntOrNull()
+                                if (slot != null && slot in 2..9) {
+                                    onAccessibilityBackspace?.invoke()
+                                    speedDialCall(slot, ctx)
+                                }
+                            }
+                        }
+                        longPressHandler.postDelayed(longPressRunnable!!, LONG_PRESS_TIMEOUT)
+                        // Add digit immediately (will be removed on long-press)
+                        onAccessibilityDialpadChar?.invoke(dialChar)
+                    }
+                    // repeatCount > 0: just consume (key is held, timer handles it)
                     return true
                 }
             }
             // Consume vertical arrows when disabled (all screens with list navigation)
-            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS || currentScreen == NavRoutes.SETTINGS || currentScreen == NavRoutes.COLOR_SETTINGS) {
+            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS || currentScreen == NavRoutes.SETTINGS || currentScreen == NavRoutes.COLOR_SETTINGS || currentScreen == NavRoutes.SPEED_DIAL_SETTINGS) {
                 if (prefs.disableVerticalArrows) {
                     if (keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                         return true
                     }
                 }
             }
-            // Recents, Contacts, Settings & Color Settings: navigate lists with DPAD UP/DOWN, activate with ENTER
-            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS || currentScreen == NavRoutes.SETTINGS || currentScreen == NavRoutes.COLOR_SETTINGS) {
+            // Recents, Contacts, Settings, Color Settings & Speed Dial Settings: navigate lists with DPAD UP/DOWN, activate with ENTER
+            if (currentScreen == NavRoutes.RECENTS || currentScreen == NavRoutes.CONTACTS || currentScreen == NavRoutes.SETTINGS || currentScreen == NavRoutes.COLOR_SETTINGS || currentScreen == NavRoutes.SPEED_DIAL_SETTINGS) {
                 if (!prefs.disableVerticalArrows) {
                     if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                         onScrollUp?.invoke()
@@ -367,6 +437,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        // Handle ACTION_UP: cancel timers if key released
+        if (event.action == KeyEvent.ACTION_UP) {
+            val keyCode = event.keyCode
+            if (keyCode == longPressKeyCode && !longPressConsumed) {
+                // Short press: timer hasn't fired, cancel it – digit already added
+                longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+                longPressRunnable = null
+                longPressKeyCode = -1
+            }
+            if (keyCode == KeyEvent.KEYCODE_DEL && backspaceKeyDown) {
+                backspaceRunnable?.let { backspaceHandler.removeCallbacks(it) }
+                backspaceRunnable = null
+                backspaceKeyDown = false
+            }
+        }
         return super.dispatchKeyEvent(event)
     }
 
@@ -382,6 +467,7 @@ class MainActivity : ComponentActivity() {
         var onScrollDown: (() -> Unit)? = null
         var onEnterPressed: (() -> Unit)? = null
         var onBackPressed: (() -> Boolean)? = null
+        var onSpeedDial: ((Int) -> Unit)? = null
         private var backKeyConsumed = false
     }
 }
@@ -399,6 +485,7 @@ object NavRoutes {
     const val SETTINGS = "settings"
     const val CONTACT_DETAIL = "contact_detail/{contactId}/{phoneNumber}"
     const val COLOR_SETTINGS = "color_settings"
+    const val SPEED_DIAL_SETTINGS = "speed_dial_settings"
     const val ONBOARDING = "onboarding"
 
     fun contactDetail(contactId: Long = -1, phoneNumber: String = "") =
@@ -467,6 +554,11 @@ fun MainScreen(
     var highlightedColorSettingsIndex by remember { mutableIntStateOf(-1) }
     var colorSettingsItemCount by remember { mutableIntStateOf(0) }
     var colorSettingsActivateTrigger by remember { mutableIntStateOf(0) }
+
+    // Speed dial settings keyboard navigation state
+    var highlightedSpeedDialSettingsIndex by remember { mutableIntStateOf(-1) }
+    var speedDialSettingsItemCount by remember { mutableIntStateOf(0) }
+    var speedDialSettingsActivateTrigger by remember { mutableIntStateOf(0) }
 
     // GitHub update check
     var hasUpdate by remember { mutableStateOf(false) }
@@ -542,6 +634,8 @@ fun MainScreen(
         settingsActivateTrigger = 0
         highlightedColorSettingsIndex = -1
         colorSettingsActivateTrigger = 0
+        highlightedSpeedDialSettingsIndex = -1
+        speedDialSettingsActivateTrigger = 0
     }
 
     // Callbacks: receive key events from dispatchKeyEvent / accessibility service
@@ -564,6 +658,10 @@ fun MainScreen(
                     if (highlightedColorSettingsIndex > 0) highlightedColorSettingsIndex--
                     else if (highlightedColorSettingsIndex < 0 && colorSettingsItemCount > 0) highlightedColorSettingsIndex = 0
                 }
+                NavRoutes.SPEED_DIAL_SETTINGS -> {
+                    if (highlightedSpeedDialSettingsIndex > 0) highlightedSpeedDialSettingsIndex--
+                    else if (highlightedSpeedDialSettingsIndex < 0 && speedDialSettingsItemCount > 0) highlightedSpeedDialSettingsIndex = 0
+                }
                 else -> {
                     if (highlightedRecentsIndex > 0) highlightedRecentsIndex--
                     else if (highlightedRecentsIndex < 0 && recentsItemCount > 0) highlightedRecentsIndex = 0
@@ -583,6 +681,10 @@ fun MainScreen(
                 NavRoutes.COLOR_SETTINGS -> {
                     if (highlightedColorSettingsIndex < colorSettingsItemCount - 1) highlightedColorSettingsIndex++
                     else if (highlightedColorSettingsIndex < 0 && colorSettingsItemCount > 0) highlightedColorSettingsIndex = 0
+                }
+                NavRoutes.SPEED_DIAL_SETTINGS -> {
+                    if (highlightedSpeedDialSettingsIndex < speedDialSettingsItemCount - 1) highlightedSpeedDialSettingsIndex++
+                    else if (highlightedSpeedDialSettingsIndex < 0 && speedDialSettingsItemCount > 0) highlightedSpeedDialSettingsIndex = 0
                 }
                 else -> {
                     if (highlightedRecentsIndex < recentsItemCount - 1) highlightedRecentsIndex++
@@ -614,7 +716,13 @@ fun MainScreen(
                 NavRoutes.COLOR_SETTINGS -> {
                     if (highlightedColorSettingsIndex >= 0) colorSettingsActivateTrigger++
                 }
+                NavRoutes.SPEED_DIAL_SETTINGS -> {
+                    if (highlightedSpeedDialSettingsIndex >= 0) speedDialSettingsActivateTrigger++
+                }
             }
+        }
+        MainActivity.onSpeedDial = { slot ->
+            speedDialCall(slot, context)
         }
         MainActivity.onBackPressed = {
             when {
@@ -635,6 +743,7 @@ fun MainScreen(
                     true
                 }
                 MainActivity.currentScreen == NavRoutes.COLOR_SETTINGS ||
+                MainActivity.currentScreen == NavRoutes.SPEED_DIAL_SETTINGS ||
                 MainActivity.currentScreen == NavRoutes.CONTACT_DETAIL -> {
                     navController.popBackStack()
                     true
@@ -649,6 +758,7 @@ fun MainScreen(
             MainActivity.onScrollDown = null
             MainActivity.onEnterPressed = null
             MainActivity.onBackPressed = null
+            MainActivity.onSpeedDial = null
             MainActivity.currentScreen = ""
         }
     }
@@ -712,7 +822,7 @@ fun MainScreen(
                 } else false
             },
         topBar = {
-            if (!isOnDetailScreen && !isOnSettingsScreen && currentRoute != NavRoutes.COLOR_SETTINGS) {
+            if (!isOnDetailScreen && !isOnSettingsScreen && currentRoute != NavRoutes.COLOR_SETTINGS && currentRoute != NavRoutes.SPEED_DIAL_SETTINGS) {
                 Column(modifier = Modifier.statusBarsPadding()) {
                     if (isAnySelectionMode) {
                         // Selection action bar replaces search bar
@@ -943,6 +1053,9 @@ fun MainScreen(
                         onNavigateToColorSettings = {
                             navController.navigate(NavRoutes.COLOR_SETTINGS)
                         },
+                        onNavigateToSpeedDialSettings = {
+                            navController.navigate(NavRoutes.SPEED_DIAL_SETTINGS)
+                        },
                     )
                 }
                 composable(NavRoutes.COLOR_SETTINGS) {
@@ -952,6 +1065,14 @@ fun MainScreen(
                         highlightedIndex = highlightedColorSettingsIndex,
                         activateTrigger = colorSettingsActivateTrigger,
                         onItemCount = { colorSettingsItemCount = it },
+                    )
+                }
+                composable(NavRoutes.SPEED_DIAL_SETTINGS) {
+                    SpeedDialSettingsScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        highlightedIndex = highlightedSpeedDialSettingsIndex,
+                        activateTrigger = speedDialSettingsActivateTrigger,
+                        onItemCount = { speedDialSettingsItemCount = it },
                     )
                 }
                 composable(NavRoutes.CONTACT_DETAIL) { backStackEntry ->
@@ -985,6 +1106,11 @@ fun MainScreen(
                         onKeyLongPress = { digit ->
                             if (digit == "0") {
                                 recentsQuery += "+"
+                            } else {
+                                val slot = digit.toIntOrNull()
+                                if (slot != null && slot in 2..9) {
+                                    speedDialCall(slot, context)
+                                }
                             }
                         },
                         onCallPress = { placeCall() },

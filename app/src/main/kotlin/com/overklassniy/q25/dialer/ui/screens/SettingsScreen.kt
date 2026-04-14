@@ -69,6 +69,7 @@ fun SettingsScreen(
     onThemeModeChanged: (String) -> Unit = {},
     onColorsChanged: () -> Unit = {},
     onNavigateToColorSettings: () -> Unit = {},
+    onNavigateToSpeedDialSettings: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val prefs = remember { PreferencesManager(context) }
@@ -157,7 +158,7 @@ fun SettingsScreen(
     }
 
     // Compute total items and report to parent for keyboard navigation bounds
-    val totalItems = 16 +
+    val totalItems = 17 +
         (if (isCheckingUpdate || hasUpdate) 1 else 0) +
         (if (BuildConfig.DEBUG) 2 else 0)
     LaunchedEffect(totalItems) { onItemCount(totalItems) }
@@ -212,6 +213,16 @@ fun SettingsScreen(
             isHighlighted = highlightedIndex == idx2,
             activateTrigger = activateTrigger,
             onPositioned = { pos -> itemPositions[idx2] = pos },
+        )
+        
+        val idx2b = nextIndex()
+        SettingsClickItem(
+            title = stringResource(R.string.settings_speed_dial),
+            subtitle = stringResource(R.string.settings_speed_dial_desc),
+            onClick = onNavigateToSpeedDialSettings,
+            isHighlighted = highlightedIndex == idx2b,
+            activateTrigger = activateTrigger,
+            onPositioned = { pos -> itemPositions[idx2b] = pos },
         )
         
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

@@ -2,6 +2,8 @@ package com.overklassniy.q25.dialer.service
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.telecom.Call
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -16,6 +18,20 @@ class QwertyAccessibilityService : AccessibilityService() {
 
     private val prefs by lazy { PreferencesManager(this) }
 
+    // Long-press detection for speed dial
+    private val longPressHandler = Handler(Looper.getMainLooper())
+    private var longPressRunnable: Runnable? = null
+    private var longPressKeyCode: Int = -1
+    private var longPressConsumed = false
+    private val LONG_PRESS_TIMEOUT = 500L // ms
+
+    // Held-backspace continuous deletion
+    private val backspaceHandler = Handler(Looper.getMainLooper())
+    private var backspaceRunnable: Runnable? = null
+    private var backspaceKeyDown = false
+    private val BACKSPACE_INITIAL_DELAY = 500L
+    private val BACKSPACE_REPEAT_INTERVAL = 50L
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         // Not used – we only need key event filtering
     }
@@ -26,6 +42,21 @@ class QwertyAccessibilityService : AccessibilityService() {
 
     @Suppress("DEPRECATION")
     override fun onKeyEvent(event: KeyEvent): Boolean {
+        // Handle ACTION_UP: cancel timers if key released
+        if (event.action == KeyEvent.ACTION_UP) {
+            val keyCode = event.keyCode
+            if (keyCode == longPressKeyCode && !longPressConsumed) {
+                longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+                longPressRunnable = null
+                longPressKeyCode = -1
+            }
+            if (keyCode == KeyEvent.KEYCODE_DEL && backspaceKeyDown) {
+                backspaceRunnable?.let { backspaceHandler.removeCallbacks(it) }
+                backspaceRunnable = null
+                backspaceKeyDown = false
+            }
+            return super.onKeyEvent(event)
+        }
         if (event.action != KeyEvent.ACTION_DOWN) return super.onKeyEvent(event)
         val keyCode = event.keyCode
 
@@ -59,7 +90,18 @@ class QwertyAccessibilityService : AccessibilityService() {
             // Recents: intercept QWERTY->dialpad and backspace (bypass IME for layout-independent input)
             if (screen == SCREEN_RECENTS) {
                 if (keyCode == KeyEvent.KEYCODE_DEL) {
-                    MainActivity.onAccessibilityBackspace?.invoke(); return true
+                    if (!backspaceKeyDown) {
+                        backspaceKeyDown = true
+                        MainActivity.onAccessibilityBackspace?.invoke()
+                        backspaceRunnable = object : Runnable {
+                            override fun run() {
+                                MainActivity.onAccessibilityBackspace?.invoke()
+                                backspaceHandler.postDelayed(this, BACKSPACE_REPEAT_INTERVAL)
+                            }
+                        }
+                        backspaceHandler.postDelayed(backspaceRunnable!!, BACKSPACE_INITIAL_DELAY)
+                    }
+                    return true
                 }
                 if (keyCode == KeyEvent.KEYCODE_ENTER) {
                     MainActivity.onEnterPressed?.invoke(); return true
@@ -70,7 +112,32 @@ class QwertyAccessibilityService : AccessibilityService() {
                         putExtra(EXTRA_MAKE_CALL, true)
                     }); return true
                 }
-                mapKeyToDialpad(keyCode)?.let { MainActivity.onAccessibilityDialpadChar?.invoke(it); return true }
+                mapKeyToDialpad(keyCode)?.let { dialChar ->
+                    if (event.repeatCount == 0) {
+                        // First press: schedule long-press detection
+                        longPressKeyCode = keyCode
+                        longPressConsumed = false
+                        val char = dialChar
+                        longPressRunnable = Runnable {
+                            longPressConsumed = true
+                            if (char == '0') {
+                                MainActivity.onAccessibilityBackspace?.invoke()
+                                MainActivity.onAccessibilityDialpadChar?.invoke('+')
+                            } else {
+                                val slot = char.digitToIntOrNull()
+                                if (slot != null && slot in 2..9) {
+                                    MainActivity.onAccessibilityBackspace?.invoke()
+                                    MainActivity.onSpeedDial?.invoke(slot)
+                                }
+                            }
+                        }
+                        longPressHandler.postDelayed(longPressRunnable!!, LONG_PRESS_TIMEOUT)
+                        // Add digit immediately (will be removed on long-press)
+                        MainActivity.onAccessibilityDialpadChar?.invoke(dialChar)
+                    }
+                    // repeatCount > 0: just consume (key is held, timer handles it)
+                    return true
+                }
             }
             // Contacts: intercept ENTER for item activation (bypass IME)
             if (screen == SCREEN_CONTACTS) {
